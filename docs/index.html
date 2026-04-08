@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>מוניטור ועדות הכנסת</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #F1F5F9;
+      --surface:   #FFFFFF;
+      --border:    #E2E8F0;
+      --border-lt: #F1F5F9;
+      --txt:       #0F172A;
+      --txt-2:     #475569;
+      --txt-3:     #94A3B8;
+      --blue:      #2563EB;
+      --blue-dk:   #1D4ED8;
+      --blue-lt:   #EFF6FF;
+      --emerald:   #059669;
+      --emerald-lt:#ECFDF5;
+      --amber:     #D97706;
+      --amber-lt:  #FFFBEB;
+      --hdr:       #0F172A;
+      --radius:    12px;
+      --shadow:    0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Heebo', sans-serif;
+      background: var(--bg);
+      color: var(--txt);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── HEADER ─── */
+    .hdr {
+      background: var(--hdr);
+      height: 60px;
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .hdr-brand { display: flex; align-items: center; gap: 10px; }
+    .hdr-logo {
+      width: 34px; height: 34px;
+      background: var(--blue);
+      border-radius: 8px;
+      display: grid; place-items: center;
+      font-size: 1rem; flex-shrink: 0;
+    }
+    .hdr-name { font-size: .98rem; font-weight: 700; color: #F1F5F9; }
+    .hdr-sub  { font-size: .7rem;  color: #64748B; margin-top: 1px; }
+    .hdr-right { display: flex; align-items: center; gap: 14px; }
+    .hdr-ts {
+      font-size: .72rem; color: #64748B;
+      display: flex; flex-direction: column; align-items: flex-end;
+    }
+    .hdr-ts span { color: #94A3B8; font-size: .8rem; font-weight: 500; }
+    .btn-refresh {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(37,99,235,.15);
+      border: 1px solid rgba(37,99,235,.4);
+      color: #93C5FD;
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-size: .8rem; font-weight: 600;
+      font-family: 'Heebo', sans-serif;
+      text-decoration: none;
+      transition: background .15s, border-color .15s;
+      white-space: nowrap;
+    }
+    .btn-refresh:hover { background: rgba(37,99,235,.28); border-color: #3B82F6; color: #BFDBFE; }
+
+    /* ─── HERO KPI STRIP ─── */
+    .hero {
+      background: var(--hdr);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      padding: 20px 28px 24px;
+    }
+    .hero-grid {
+      max-width: 1200px; margin: 0 auto;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    }
+    .kpi {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      display: flex; align-items: center; gap: 16px;
+      position: relative; overflow: hidden;
+    }
+    .kpi::before {
+      content: '';
+      position: absolute; top: 0; right: 0;
+      width: 4px; height: 100%;
+      border-radius: 0 var(--radius) var(--radius) 0;
+    }
+    .kpi-total::before  { background: var(--blue); }
+    .kpi-transp::before { background: var(--emerald); }
+    .kpi-energy::before { background: var(--amber); }
+    .kpi-ico {
+      width: 44px; height: 44px; border-radius: 10px;
+      display: grid; place-items: center; font-size: 1.25rem; flex-shrink: 0;
+    }
+    .kpi-total  .kpi-ico { background: rgba(37,99,235,.18); }
+    .kpi-transp .kpi-ico { background: rgba(5,150,105,.18); }
+    .kpi-energy .kpi-ico { background: rgba(217,119,6,.18); }
+    .kpi-val  { font-size: 2.4rem; font-weight: 900; line-height: 1; color: #F1F5F9; }
+    .kpi-lbl  { font-size: .75rem; color: #94A3B8; margin-top: 4px; font-weight: 500; }
+    .kpi-hint { font-size: .68rem; color: #64748B; margin-top: 3px; }
+
+    /* ─── MAIN ─── */
+    .main { max-width: 1200px; margin: 0 auto; padding: 24px 20px 56px; }
+
+    /* ─── PANEL ─── */
+    .panel {
+      background: var(--surface);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .toolbar {
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--border-lt);
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    .toolbar-title {
+      font-size: .9rem; font-weight: 700; color: var(--txt);
+      flex: 1; min-width: 100px;
+    }
+    .toolbar-title small { display: block; font-size: .72rem; color: var(--txt-3); font-weight: 400; margin-top: 1px; }
+
+    /* Search */
+    .search-wrap { position: relative; flex: 1; max-width: 260px; }
+    .search-ico {
+      position: absolute; right: 10px; top: 50%;
+      transform: translateY(-50%); font-size: .85rem; pointer-events: none;
+    }
+    .search-inp {
+      width: 100%; padding: 8px 34px 8px 12px;
+      border: 1px solid var(--border); border-radius: 8px;
+      font-family: 'Heebo', sans-serif; font-size: .85rem;
+      color: var(--txt); background: var(--bg);
+      outline: none; transition: border-color .15s, box-shadow .15s;
+      direction: rtl;
+    }
+    .search-inp:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.1); background: #fff; }
+    .search-inp::placeholder { color: var(--txt-3); }
+
+    /* Filter pills */
+    .filters { display: flex; gap: 6px; flex-wrap: wrap; }
+    .fpill {
+      border: 1px solid var(--border); border-radius: 20px;
+      padding: 5px 14px; font-size: .78rem; font-weight: 500;
+      cursor: pointer; font-family: 'Heebo', sans-serif;
+      background: var(--surface); color: var(--txt-2);
+      transition: all .15s; white-space: nowrap;
+      display: inline-flex; align-items: center; gap: 5px;
+    }
+    .fpill .fc { font-size: .7rem; background: var(--border-lt); border-radius: 20px; padding: 0 6px; }
+    .fpill:hover { border-color: var(--blue); color: var(--blue); }
+    .fpill.active { background: var(--blue); border-color: var(--blue); color: #fff; font-weight: 600; }
+    .fpill.active .fc { background: rgba(255,255,255,.2); color: #fff; }
+    .fpill[data-filter="תחבורה"].active { background: var(--emerald); border-color: var(--emerald); }
+    .fpill[data-filter="אנרגיה"].active  { background: var(--amber);   border-color: var(--amber);   }
+
+    /* Table */
+    .tbl-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 580px; }
+    thead tr { background: #FAFBFC; }
+    th {
+      padding: 11px 20px; font-size: .7rem; font-weight: 700;
+      color: var(--txt-3); text-align: right;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap; letter-spacing: .04em; text-transform: uppercase;
+    }
+    td { padding: 15px 20px; border-bottom: 1px solid var(--border-lt); vertical-align: middle; }
+    .session-row { cursor: pointer; transition: background .1s; }
+    .session-row:last-child td { border-bottom: none; }
+    .session-row:hover td { background: #F8FAFF; }
+    .session-row:active td { background: #EFF6FF; }
+
+    .td-title-cell { max-width: 400px; }
+    .td-title {
+      font-size: .9rem; font-weight: 600; color: var(--txt); line-height: 1.5;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .td-date { font-size: .82rem; color: var(--txt-2); white-space: nowrap; font-weight: 500; }
+    .td-action { text-align: center; white-space: nowrap; }
+
+    /* Badges */
+    .badge {
+      display: inline-block; border-radius: 20px;
+      padding: 3px 11px; font-size: .72rem; font-weight: 600; white-space: nowrap;
+    }
+    .badge-committee { background: var(--border-lt); color: var(--txt-2); }
+    .badge-transport  { background: var(--emerald-lt); color: var(--emerald); }
+    .badge-energy     { background: var(--amber-lt);   color: var(--amber);   }
+    .badge-default    { background: var(--border-lt);  color: var(--txt-3);   }
+
+    /* Open button */
+    .btn-open {
+      display: inline-flex; align-items: center;
+      background: var(--blue); color: #fff; border-radius: 7px;
+      padding: 6px 14px; font-size: .78rem; font-weight: 600;
+      font-family: 'Heebo', sans-serif; text-decoration: none;
+      transition: background .15s, box-shadow .15s; white-space: nowrap;
+    }
+    .btn-open:hover { background: var(--blue-dk); box-shadow: 0 4px 12px rgba(37,99,235,.3); }
+
+    /* No results */
+    .no-results { text-align: center; padding: 64px 24px !important; color: var(--txt-3); }
+    .no-results-icon { font-size: 2.2rem; margin-bottom: 12px; }
+    .no-results p { font-size: .95rem; }
+
+    /* ─── MODAL ─── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.45); backdrop-filter: blur(3px);
+      z-index: 500; align-items: center; justify-content: center; padding: 16px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--surface); border-radius: 18px;
+      width: 100%; max-width: 540px;
+      max-height: 90vh; overflow-y: auto;
+      box-shadow: 0 24px 64px rgba(0,0,0,.25);
+      animation: modalIn .22s cubic-bezier(.34,1.3,.64,1);
+      position: relative;
+    }
+    @keyframes modalIn {
+      from { opacity:0; transform: translateY(18px) scale(.97); }
+      to   { opacity:1; transform: translateY(0)    scale(1);   }
+    }
+    .modal-head {
+      padding: 22px 24px 18px;
+      border-bottom: 1px solid var(--border-lt);
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+    }
+    .modal-close {
+      background: var(--bg); border: none; border-radius: 8px;
+      width: 32px; height: 32px; cursor: pointer;
+      font-size: 1rem; color: var(--txt-3); flex-shrink: 0;
+      display: grid; place-items: center; transition: background .15s;
+    }
+    .modal-close:hover { background: var(--border); color: var(--txt); }
+    .modal-body { padding: 22px 24px 26px; }
+    .modal-title {
+      font-size: 1.05rem; font-weight: 700; color: var(--txt);
+      line-height: 1.5; margin-bottom: 18px;
+    }
+    .modal-meta {
+      display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px;
+    }
+    .modal-meta-row {
+      display: flex; align-items: center; gap: 10px;
+      font-size: .85rem; color: var(--txt-2);
+    }
+    .modal-meta-ico { font-size: 1rem; }
+    .modal-relevance {
+      background: var(--bg); border-radius: 10px; padding: 14px 16px;
+      font-size: .85rem; color: var(--txt-2); line-height: 1.6;
+      margin-bottom: 20px; font-style: italic;
+    }
+    .btn-modal-open {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      background: var(--blue); color: #fff; border-radius: 10px;
+      padding: 12px 20px; font-size: .9rem; font-weight: 700;
+      font-family: 'Heebo', sans-serif; text-decoration: none;
+      transition: background .15s, box-shadow .15s;
+    }
+    .btn-modal-open:hover { background: var(--blue-dk); box-shadow: 0 6px 18px rgba(37,99,235,.35); }
+
+    /* ─── FOOTER ─── */
+    .footer {
+      text-align: center; padding: 28px 24px 16px;
+      color: var(--txt-3); font-size: .72rem;
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 768px) {
+      .hdr { padding: 0 16px; }
+      .hdr-sub, .hdr-ts .label { display: none; }
+      .hero { padding: 14px 16px 18px; }
+      .hero-grid { gap: 10px; }
+      .kpi { padding: 14px 14px; }
+      .kpi-val { font-size: 1.9rem; }
+      .main { padding: 16px 12px 48px; }
+      .toolbar { flex-direction: column; align-items: stretch; }
+      .search-wrap { max-width: 100%; }
+      th, td { padding: 12px 14px; }
+      .td-title-cell { max-width: 220px; }
+      .modal { border-radius: 14px; }
+    }
+    @media (max-width: 480px) {
+      .kpi-hint { display: none; }
+      .kpi { gap: 10px; }
+      .kpi-ico { width: 36px; height: 36px; font-size: 1rem; }
+      .kpi-val { font-size: 1.6rem; }
+      .btn-refresh { padding: 6px 10px; font-size: .75rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══ HEADER ═══ -->
+  <header class="hdr">
+    <div class="hdr-brand">
+      <div class="hdr-logo">🏛️</div>
+      <div>
+        <div class="hdr-name">מוניטור ועדות הכנסת</div>
+        <div class="hdr-sub">תחבורה ואנרגיה · 30 הימים הקרובים</div>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <div class="hdr-ts">
+        <span class="label" style="font-size:.68rem;color:#64748B;">עודכן לאחרונה</span>
+        <span>04/04/2026 23:38</span>
+      </div>
+      <a href="https://github.com/izikdaniel-alt/knesset-committee-tracker/actions" target="_blank" rel="noopener" class="btn-refresh">
+        🔄 רענן נתונים
+      </a>
+    </div>
+  </header>
+
+  <!-- ═══ HERO KPIs ═══ -->
+  <section class="hero">
+    <div class="hero-grid">
+      <div class="kpi kpi-total">
+        <div class="kpi-ico">📋</div>
+        <div>
+          <div class="kpi-val">6</div>
+          <div class="kpi-lbl">סה״כ דיונים</div>
+          <div class="kpi-hint">30 הימים הקרובים</div>
+        </div>
+      </div>
+      <div class="kpi kpi-transp">
+        <div class="kpi-ico">🚗</div>
+        <div>
+          <div class="kpi-val">6</div>
+          <div class="kpi-lbl">דיוני תחבורה</div>
+          <div class="kpi-hint">תחבורה ציבורית, רכב, כבישים</div>
+        </div>
+      </div>
+      <div class="kpi kpi-energy">
+        <div class="kpi-ico">⚡</div>
+        <div>
+          <div class="kpi-val">0</div>
+          <div class="kpi-lbl">דיוני אנרגיה</div>
+          <div class="kpi-hint">חשמל, גז, אנרגיות מתחדשות</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ MAIN TABLE ═══ -->
+  <main class="main">
+    <div class="panel">
+      <div class="toolbar">
+        <div class="toolbar-title">
+          לוח דיונים
+          <small>לחץ על שורה לפרטים נוספים</small>
+        </div>
+        <div class="search-wrap">
+          <span class="search-ico">🔍</span>
+          <input class="search-inp" id="searchInput" type="text" placeholder="חיפוש לפי נושא, ועדה...">
+        </div>
+        <div class="filters">
+          <button class="fpill active" data-filter="all">הכל <span class="fc" id="cnt-all">6</span></button>
+          <button class="fpill" data-filter="תחבורה">🚗 תחבורה <span class="fc" id="cnt-transp">6</span></button>
+          <button class="fpill" data-filter="אנרגיה">⚡ אנרגיה <span class="fc" id="cnt-energy">0</span></button>
+        </div>
+      </div>
+
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>נושא הדיון</th>
+              <th>ועדה</th>
+              <th>תאריך ושעה</th>
+              <th>תחום</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+            
+        <tr class="session-row" data-idx="0" data-cat="תחבורה" data-search="פרק ו' (פסולת בניין) מתוך הצעת חוק התכנית הכלכלית (תיקוני חקיקה ליישום המדיניות הכלכלית לשנות התקציב 2023 ו-2024), התשפג-2023 [פוצלה לפי סעיף 84(ב) לתקנון] ועדת הפנים והגנת הסביבה תחבורה">
+          <td class="td-title-cell"><span class="td-title">פרק ו' (פסולת בניין) מתוך הצעת חוק התכנית הכלכלית (תיקוני חקיקה ליישום המדיניות הכלכלית לשנות התקציב 2023 ו-2024), התשפ"ג-2023 [פוצלה לפי סעיף 84(ב) לתקנון]</span></td>
+          <td><span class="badge badge-committee">ועדת הפנים והגנת הסביבה</span></td>
+          <td class="td-date">יום שני, 13/04/2026 09:00</td>
+          <td><span class="badge badge-transport">תחבורה</span></td>
+          <td class="td-action">
+            <a href="https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2242102" target="_blank" rel="noopener" class="btn-open" onclick="event.stopPropagation()">פתח ←</a>
+          </td>
+        </tr>
+        <tr class="session-row" data-idx="1" data-cat="תחבורה" data-search="הצעת תקנות שירות המדינה (גימלאות) (קצבת גישור לעובדי ביטחון חדשים של שירות הביטחון הכללי), התשפו-2026 ועדת החוץ והביטחון תחבורה">
+          <td class="td-title-cell"><span class="td-title">הצעת תקנות שירות המדינה (גימלאות) (קצבת גישור לעובדי ביטחון חדשים של שירות הביטחון הכללי), התשפ"ו-2026</span></td>
+          <td><span class="badge badge-committee">ועדת החוץ והביטחון</span></td>
+          <td class="td-date">יום שני, 13/04/2026 10:00</td>
+          <td><span class="badge badge-transport">תחבורה</span></td>
+          <td class="td-action">
+            <a href="https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2242216" target="_blank" rel="noopener" class="btn-open" onclick="event.stopPropagation()">פתח ←</a>
+          </td>
+        </tr>
+        <tr class="session-row" data-idx="2" data-cat="תחבורה" data-search="הצעת חוק התקשורת (שידורים), התשפו-2025 הוועדה לדיון בהצעת חוק התקשורת (שידורים), התשפו-2025 (מ/1898) תחבורה">
+          <td class="td-title-cell"><span class="td-title">הצעת חוק התקשורת (שידורים), התשפ"ו-2025</span></td>
+          <td><span class="badge badge-committee">הוועדה לדיון בהצעת חוק התקשורת (שידורים), התשפ"ו-2025 (מ/1898)</span></td>
+          <td class="td-date">יום שני, 13/04/2026 10:00</td>
+          <td><span class="badge badge-transport">תחבורה</span></td>
+          <td class="td-action">
+            <a href="https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2242277" target="_blank" rel="noopener" class="btn-open" onclick="event.stopPropagation()">פתח ←</a>
+          </td>
+        </tr>
+        <tr class="session-row" data-idx="3" data-cat="תחבורה" data-search="הצעת חוק התוכנית לסיוע כלכלי (הוראת שעה) (סיוע לעסקים ולמוסדות ציבור), התשפו-2026 ועדת הכספים תחבורה">
+          <td class="td-title-cell"><span class="td-title">הצעת חוק התוכנית לסיוע כלכלי (הוראת שעה) (סיוע לעסקים ולמוסדות ציבור), התשפ"ו-2026</span></td>
+          <td><span class="badge badge-committee">ועדת הכספים</span></td>
+          <td class="td-date">יום שלישי, 14/04/2026 10:00</td>
+          <td><span class="badge badge-transport">תחבורה</span></td>
+          <td class="td-action">
+            <a href="https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2242316" target="_blank" rel="noopener" class="btn-open" onclick="event.stopPropagation()">פתח ←</a>
+          </td>
+        </tr>
+        <tr class="session-row" data-idx="4" data-cat="תחבורה" data-search="שינויים בתקציב לשנת 2025 ועדת הכספים תחבורה">
+          <td class="td-title-cell"><span class="td-title">שינויים בתקציב לשנת 2025</span></td>
+          <td><span class="badge badge-committee">ועדת הכספים</span></td>
+          <td class="td-date">יום שלישי, 14/04/2026 13:30</td>
+          <td><span class="badge badge-transport">תחבורה</span></td>
+          <td class="td-action">
+            <a href="https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2242318" target="_blank" rel="noopener" class="btn-open" onclick="event.stopPropagation()">פתח ←</a>
+          </td>
+        </tr>
+        <tr class="session-row" data-idx="5" data-cat="תחבורה" data-search="הצעת חוק התקשורת (שידורים), התשפו-2025 הוועדה לדיון בהצעת חוק התקשורת (שידורים), התשפו-2025 (מ/1898) תחבורה">
+          <td class="td-title-cell"><span class="td-title">הצעת חוק התקשורת (שידורים), התשפ"ו-2025</span></td>
+          <td><span class="badge badge-committee">הוועדה לדיון בהצעת חוק התקשורת (שידורים), התשפ"ו-2025 (מ/1898)</span></td>
+          <td class="td-date">יום רביעי, 15/04/2026 10:00</td>
+          <td><span class="badge badge-transport">תחבורה</span></td>
+          <td class="td-action">
+            <a href="https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2242278" target="_blank" rel="noopener" class="btn-open" onclick="event.stopPropagation()">פתח ←</a>
+          </td>
+        </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- ═══ DETAIL MODAL ═══ -->
+  <div class="modal-overlay" id="overlay" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-head">
+        <div id="m-badge"></div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-title" id="m-title"></div>
+        <div class="modal-meta">
+          <div class="modal-meta-row"><span class="modal-meta-ico">🏛️</span><span id="m-committee"></span></div>
+          <div class="modal-meta-row"><span class="modal-meta-ico">🗓️</span><span id="m-date"></span></div>
+        </div>
+        <div class="modal-relevance" id="m-relevance" style="display:none"></div>
+        <a class="btn-modal-open" id="m-link" target="_blank" rel="noopener">פתח בכנסת ←</a>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    נוצר אוטומטית · 04/04/2026 23:38
+  </footer>
+
+  <script>
+    const SESSIONS = [{"title": "פרק ו' (פסולת בניין) מתוך הצעת חוק התכנית הכלכלית (תיקוני חקיקה ליישום המדיניות הכלכלית לשנות התקציב 2023 ו-2024), התשפ\"ג-2023 [פוצלה לפי סעיף 84(ב) לתקנון]", "committee": "ועדת הפנים והגנת הסביבה", "datetime": "יום שני, 13/04/2026 09:00", "link": "https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2242102", "category": "תחבורה", "relevance": "Pending AI Analysis"}, {"title": "הצעת תקנות שירות המדינה (גימלאות) (קצבת גישור לעובדי ביטחון חדשים של שירות הביטחון הכללי), התשפ\"ו-2026", "committee": "ועדת החוץ והביטחון", "datetime": "יום שני, 13/04/2026 10:00", "link": "https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2242216", "category": "תחבורה", "relevance": "Pending AI Analysis"}, {"title": "הצעת חוק התקשורת (שידורים), התשפ\"ו-2025", "committee": "הוועדה לדיון בהצעת חוק התקשורת (שידורים), התשפ\"ו-2025 (מ/1898)", "datetime": "יום שני, 13/04/2026 10:00", "link": "https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2242277", "category": "תחבורה", "relevance": "Pending AI Analysis"}, {"title": "הצעת חוק התוכנית לסיוע כלכלי (הוראת שעה) (סיוע לעסקים ולמוסדות ציבור), התשפ\"ו-2026", "committee": "ועדת הכספים", "datetime": "יום שלישי, 14/04/2026 10:00", "link": "https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2242316", "category": "תחבורה", "relevance": "Pending AI Analysis"}, {"title": "שינויים בתקציב לשנת 2025", "committee": "ועדת הכספים", "datetime": "יום שלישי, 14/04/2026 13:30", "link": "https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2242318", "category": "תחבורה", "relevance": "Pending AI Analysis"}, {"title": "הצעת חוק התקשורת (שידורים), התשפ\"ו-2025", "committee": "הוועדה לדיון בהצעת חוק התקשורת (שידורים), התשפ\"ו-2025 (מ/1898)", "datetime": "יום רביעי, 15/04/2026 10:00", "link": "https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2242278", "category": "תחבורה", "relevance": "Pending AI Analysis"}];
+    let activeFilter = 'all';
+    let searchTerm   = '';
+    const rows = Array.from(document.querySelectorAll('.session-row'));
+
+    function applyFilters() {
+      let visAll = 0, visTr = 0, visEn = 0;
+      rows.forEach(r => {
+        const matchCat    = activeFilter === 'all' || r.dataset.cat === activeFilter;
+        const matchSearch = !searchTerm || r.dataset.search.includes(searchTerm);
+        const show = matchCat && matchSearch;
+        r.style.display = show ? '' : 'none';
+        if (show) {
+          visAll++;
+          if (r.dataset.cat === 'תחבורה') visTr++;
+          if (r.dataset.cat === 'אנרגיה')  visEn++;
+        }
+      });
+      document.getElementById('cnt-all').textContent    = visAll;
+      document.getElementById('cnt-transp').textContent = visTr;
+      document.getElementById('cnt-energy').textContent = visEn;
+    }
+
+    document.querySelectorAll('.fpill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.fpill').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeFilter = btn.dataset.filter;
+        applyFilters();
+      });
+    });
+
+    document.getElementById('searchInput').addEventListener('input', e => {
+      searchTerm = e.target.value.trim();
+      applyFilters();
+    });
+
+    rows.forEach(row => {
+      row.addEventListener('click', () => openModal(parseInt(row.dataset.idx)));
+    });
+
+    function openModal(idx) {
+      const s = SESSIONS[idx];
+      if (!s) return;
+      const cat = s.category || '';
+      let badgeHtml = '';
+      if (cat === 'תחבורה') badgeHtml = '<span class="badge badge-transport">🚗 ' + cat + '</span>';
+      else if (cat === 'אנרגיה') badgeHtml = '<span class="badge badge-energy">⚡ ' + cat + '</span>';
+      document.getElementById('m-badge').innerHTML     = badgeHtml;
+      document.getElementById('m-title').textContent   = s.title || '';
+      document.getElementById('m-committee').textContent = s.committee || '';
+      document.getElementById('m-date').textContent    = s.datetime || '';
+      document.getElementById('m-link').href           = s.link || '#';
+      const relEl = document.getElementById('m-relevance');
+      if (s.relevance && s.relevance !== 'Pending AI Analysis') {
+        relEl.textContent = s.relevance;
+        relEl.style.display = 'block';
+      } else {
+        relEl.style.display = 'none';
+      }
+      document.getElementById('overlay').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      document.getElementById('overlay').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+  </script>
+
+</body>
+</html>
