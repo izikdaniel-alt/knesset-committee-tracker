@@ -2,7 +2,11 @@ name: Update Knesset Dashboard
 
 on:
   schedule:
-    - cron: "0 5 * * *"  # 08:00 Israel time (UTC+3 / IDT)
+    # Runs every hour 05:00–07:00 UTC, Sun–Thu.
+    # Covers 08:00 Israel time in both winter (UTC+2, triggers at 06:00 UTC)
+    # and summer (UTC+3, triggers at 05:00 UTC). The gate step below
+    # ensures only the run that lands on exactly 08:00 IL proceeds.
+    - cron: "0 5-7 * * 0-4"
   workflow_dispatch:
 
 permissions:
@@ -13,20 +17,43 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Resolve Israel time and set run gate
+        id: gate
+        run: |
+          ISRAEL_HOUR=$(TZ='Asia/Jerusalem' date +'%H')
+          EVENT="${{ github.event_name }}"
+          echo "Israel hour: $ISRAEL_HOUR  |  Event: $EVENT"
+
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            echo "should_run=true"  >> $GITHUB_OUTPUT
+            echo "send_email=false" >> $GITHUB_OUTPUT
+          elif [ "$EVENT" = "schedule" ] && [ "$ISRAEL_HOUR" = "08" ]; then
+            echo "should_run=true"  >> $GITHUB_OUTPUT
+            echo "send_email=true"  >> $GITHUB_OUTPUT
+          else
+            echo "should_run=false" >> $GITHUB_OUTPUT
+            echo "send_email=false" >> $GITHUB_OUTPUT
+            echo "Not 08:00 Israel time — skipping."
+          fi
+
       - name: Checkout repository
+        if: steps.gate.outputs.should_run == 'true'
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python 3.11
+        if: steps.gate.outputs.should_run == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
       - name: Install dependencies
+        if: steps.gate.outputs.should_run == 'true'
         run: pip install -r requirements.txt
 
-      - name: Run monitor
+      - name: Run monitor (scheduled — with email)
+        if: steps.gate.outputs.should_run == 'true' && steps.gate.outputs.send_email == 'true'
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
@@ -35,7 +62,15 @@ jobs:
           GITHUB_PAGES_URL: https://izikdaniel-alt.github.io/knesset-committee-tracker
         run: python knesset_monitor.py
 
+      - name: Run monitor (manual — dashboard only)
+        if: steps.gate.outputs.should_run == 'true' && steps.gate.outputs.send_email == 'false'
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_PAGES_URL: https://izikdaniel-alt.github.io/knesset-committee-tracker
+        run: python knesset_monitor.py
+
       - name: Commit and push updated dashboard
+        if: steps.gate.outputs.should_run == 'true'
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
