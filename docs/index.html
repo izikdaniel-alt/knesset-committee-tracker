@@ -283,9 +283,17 @@
 
     /* ─── FOOTER ─── */
     .footer {
-      text-align: center; padding: 28px 24px 16px;
+      text-align: center; padding: 20px 24px 16px;
       color: var(--txt-3); font-size: .72rem;
     }
+    .sysinfo {
+      display: inline-flex; align-items: center; gap: 18px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 8px 18px;
+      font-size: .72rem; color: var(--txt-2); flex-wrap: wrap; justify-content: center;
+    }
+    .sysinfo-item { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+    .sysinfo-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--emerald); }
 
     /* ─── RESPONSIVE ─── */
     @media (max-width: 768px) {
@@ -325,7 +333,7 @@
     <div class="hdr-right">
       <div class="hdr-ts">
         <span class="label" style="font-size:.68rem;color:#64748B;">עודכן לאחרונה</span>
-        <span>08/04/2026 20:49</span>
+        <span>08/04/2026 21:17</span>
       </div>
       <a href="https://github.com/izikdaniel-alt/knesset-committee-tracker/actions" target="_blank" rel="noopener" class="btn-refresh">
         🔄 רענן נתונים
@@ -425,7 +433,14 @@
   </div>
 
   <footer class="footer">
-    נוצר אוטומטית · 08/04/2026 20:49
+    <div class="sysinfo">
+      <div class="sysinfo-item">
+        <span class="sysinfo-dot"></span>
+        <span>סריקה אחרונה: <strong>08/04/2026 21:17</strong></span>
+      </div>
+      <div class="sysinfo-item">🔍 דיונים שנסרקו: <strong>0</strong></div>
+      <div class="sysinfo-item">✅ דיונים רלוונטיים: <strong>0</strong></div>
+    </div>
   </footer>
 
   <script>
