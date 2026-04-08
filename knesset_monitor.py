@@ -255,6 +255,7 @@ def _analyse_chunk(client: genai.Client, sessions: list[dict]) -> dict:
 def generate_dashboard(results: dict, generated_at: datetime) -> str:
     sessions = results.get("relevant_sessions", [])
     total_relevant = len(sessions)
+    total_scanned = results.get("total_scanned", 0)
     date_str = generated_at.strftime("%d/%m/%Y %H:%M")
 
     # KPI stats
@@ -592,9 +593,17 @@ def generate_dashboard(results: dict, generated_at: datetime) -> str:
 
     /* ─── FOOTER ─── */
     .footer {{
-      text-align: center; padding: 28px 24px 16px;
+      text-align: center; padding: 20px 24px 16px;
       color: var(--txt-3); font-size: .72rem;
     }}
+    .sysinfo {{
+      display: inline-flex; align-items: center; gap: 18px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 8px 18px;
+      font-size: .72rem; color: var(--txt-2); flex-wrap: wrap; justify-content: center;
+    }}
+    .sysinfo-item {{ display: flex; align-items: center; gap: 5px; white-space: nowrap; }}
+    .sysinfo-dot {{ width: 6px; height: 6px; border-radius: 50%; background: var(--emerald); }}
 
     /* ─── RESPONSIVE ─── */
     @media (max-width: 768px) {{
@@ -730,7 +739,14 @@ def generate_dashboard(results: dict, generated_at: datetime) -> str:
   </div>
 
   <footer class="footer">
-    נוצר אוטומטית · {date_str}
+    <div class="sysinfo">
+      <div class="sysinfo-item">
+        <span class="sysinfo-dot"></span>
+        <span>סריקה אחרונה: <strong>{date_str}</strong></span>
+      </div>
+      <div class="sysinfo-item">🔍 דיונים שנסרקו: <strong>{total_scanned}</strong></div>
+      <div class="sysinfo-item">✅ דיונים רלוונטיים: <strong>{total_relevant}</strong></div>
+    </div>
   </footer>
 
   <script>
