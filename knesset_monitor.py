@@ -46,7 +46,7 @@ MAX_GEMINI_RETRIES = 3
 HEBREW_DAYS = ["יום שני", "יום שלישי", "יום רביעי", "יום חמישי", "יום שישי", "יום שבת", "יום ראשון"]
 
 KNESSET_API = (
-    "https://knesset.gov.il/Odata/ParliamentInfo.svc/KNS_CommitteeSession"
+    "https://main.knesset.gov.il/Odata/ParliamentInfo.svc/KNS_CommitteeSession"
     "?$filter=KnessetNum eq 25"
     " and StartDate ge datetime'{start}'"
     " and StartDate le datetime'{end}'"
@@ -104,6 +104,8 @@ BROWSER_HEADERS = {
     ),
     "Accept": "application/json, text/plain, */*",
     "Accept-Encoding": "gzip, deflate, br",
+    "Referer": "https://main.knesset.gov.il/",
+    "Origin": "https://main.knesset.gov.il",
 }
 
 
@@ -142,10 +144,12 @@ def fetch_sessions() -> list[dict]:
                 resp.raise_for_status()
             body = resp.text.strip()
             if not body or body.lower().startswith("<!doctype html"):
-                log.error("Received HTML/Empty instead of JSON (attempt %d): %s", attempt + 1, body[:200])
                 if attempt == 0:
+                    log.error("Received HTML/Empty instead of JSON (attempt %d): %s", attempt + 1, body[:200])
                     time.sleep(2)
                     continue
+                log.critical("CRITICAL: Still blocked by Knesset WAF. Need to switch to a different endpoint.")
+                log.error("Blocked response body: %s", body[:200])
                 return []
             break
         except requests.RequestException as exc:
