@@ -60,6 +60,7 @@ jobs:
           GMAIL_APP_PASS: ${{ secrets.GMAIL_APP_PASS }}
           RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
           GITHUB_PAGES_URL: https://izikdaniel-alt.github.io/knesset-committee-tracker
+          SCRAPER_API_KEY: ${{ secrets.SCRAPER_API_KEY }}
         run: python knesset_monitor.py
 
       - name: Run monitor (manual — dashboard only)
@@ -67,6 +68,7 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GITHUB_PAGES_URL: https://izikdaniel-alt.github.io/knesset-committee-tracker
+          SCRAPER_API_KEY: ${{ secrets.SCRAPER_API_KEY }}
         run: python knesset_monitor.py
 
       - name: Commit and push updated dashboard
