@@ -97,10 +97,21 @@ ANALYSIS_PROMPT = """\
 # HTTP session with retry
 # ---------------------------------------------------------------------------
 
+BROWSER_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/120.0.0.0 Safari/537.36"
+    ),
+    "Accept": "application/json",
+}
+
+
 def _make_http_session() -> requests.Session:
     session = requests.Session()
     retry = Retry(total=3, backoff_factor=1, status_forcelist=[429, 500, 502, 503, 504])
     session.mount("https://", HTTPAdapter(max_retries=retry))
+    session.headers.update(BROWSER_HEADERS)
     return session
 
 
@@ -120,7 +131,10 @@ def fetch_sessions() -> list[dict]:
     log.info("Fetching sessions from Knesset API…")
     log.info("Request URL: %s", url)
     try:
-        resp = _make_http_session().get(url, timeout=30, headers={"Accept": "application/json"})
+        resp = _make_http_session().get(url, timeout=30)
+        log.info("HTTP %d from Knesset API", resp.status_code)
+        if not resp.ok:
+            log.error("API error %d — response: %s", resp.status_code, resp.text[:200])
         resp.raise_for_status()
         data = resp.json()
     except requests.RequestException as exc:
@@ -889,7 +903,7 @@ def generate_email_html(results: dict, generated_at: datetime) -> str:
     else:
         cards_html = """
       <div style="text-align:center;padding:40px;color:#6B7A8D;font-size:1rem;">
-        אין דיונים רלוונטיים בתחומי תחבורה ואנרגיה ב-30 הימים הקרובים
+        No relevant committee discussions found today.
       </div>"""
 
     email_html = f"""<!DOCTYPE html>
@@ -961,6 +975,8 @@ def send_email(results: dict, generated_at: datetime) -> None:
         log.warning("Email credentials not set — skipping email.")
         return
 
+    n = len(results.get("relevant_sessions", []))
+    log.info("Sending daily summary email (%d relevant session(s))…", n)
     subject = f"🏛️ דיוני ועדות הכנסת — תחבורה ואנרגיה | {generated_at.strftime('%d/%m/%Y')}"
     body_html = generate_email_html(results, generated_at)
 
