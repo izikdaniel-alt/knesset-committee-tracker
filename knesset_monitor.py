@@ -45,7 +45,15 @@ MAX_GEMINI_RETRIES = 3
 
 HEBREW_DAYS = ["יום שני", "יום שלישי", "יום רביעי", "יום חמישי", "יום שישי", "יום שבת", "יום ראשון"]
 
-KNESSET_API = "https://main.knesset.gov.il/api/ucommittee/sessions"
+KNESSET_API = (
+    "https://knesset.gov.il/Odata/ParliamentInfo.svc/KNS_CommitteeSession"
+    "?$filter=KnessetNum eq 25"
+    " and StartDate ge datetime'{start}'"
+    " and StartDate le datetime'{end}'"
+    "&$expand=KNS_Committee,KNS_CmtSessionItems"
+    "&$orderby=StartDate asc"
+    "&$format=json"
+)
 
 KNESSET_SESSION_URL = (
     "https://main.knesset.gov.il/Activity/committees/Pages/"
@@ -125,19 +133,19 @@ def fetch_sessions() -> list[dict]:
     today = datetime.now()
     end = today + timedelta(days=30)
 
-    params = {
-        "fromdate": today.strftime("%d/%m/%Y"),
-        "todate":   end.strftime("%d/%m/%Y"),
-    }
+    url = KNESSET_API.format(
+        start=today.strftime("%Y-%m-%dT00:00:00"),
+        end=end.strftime("%Y-%m-%dT23:59:59"),
+    )
 
     log.info("Fetching sessions from Knesset API…")
-    log.info("Request URL: %s?fromdate=%s&todate=%s", KNESSET_API, params["fromdate"], params["todate"])
+    log.info("Request URL: %s", url)
 
     http = _make_http_session()
     resp = None
     for attempt in range(2):
         try:
-            resp = http.get(KNESSET_API, params=params, timeout=30)
+            resp = http.get(url, timeout=30)
             log.info("HTTP %d from Knesset API (attempt %d)", resp.status_code, attempt + 1)
             if not resp.ok:
                 log.error("API error %d — response: %s", resp.status_code, resp.text[:200])
@@ -167,46 +175,40 @@ def fetch_sessions() -> list[dict]:
         log.error("JSON parse error: %s — body: %s", exc, resp.text[:200])
         return []
 
-    # ucommittee API returns a flat list (or a dict with a list under a key)
-    if isinstance(data, list):
-        raw = data
-    else:
-        raw = data.get("value") or data.get("data") or data.get("sessions") or []
-
+    raw = data.get("value", [])
     sessions = []
     for item in raw:
-        title          = item.get("Subject") or item.get("Name") or "ישיבת ועדה"
-        committee_name = item.get("CommitteeName") or item.get("Committee") or ""
-        start_raw      = item.get("StartDate") or item.get("SessionDate") or ""
-        session_id     = item.get("SessionID") or item.get("CommitteeSessionID")
-        session_url    = item.get("SessionUrl") or item.get("Url") or ""
+        session_id     = item.get("CommitteeSessionID")
+        committee_obj  = item.get("KNS_Committee") or {}
+        committee_name = committee_obj.get("Name", "")
+        agenda_items   = item.get("KNS_CmtSessionItems") or []
+        agenda_names   = [i.get("Name", "") for i in agenda_items if i.get("Name")]
+        title          = " ; ".join(agenda_names) if agenda_names else (item.get("Name") or "ישיבת ועדה")
+        start_raw      = item.get("StartDate", "")
 
         dt_str = ""
         dt = None
         if start_raw:
-            if "/Date(" in str(start_raw):
+            if "/Date(" in start_raw:
                 try:
-                    ts_ms = int(str(start_raw).split("(")[1].split(")")[0].split("+")[0].split("-")[0])
+                    ts_ms = int(start_raw.split("(")[1].split(")")[0].split("+")[0].split("-")[0])
                     dt = datetime.utcfromtimestamp(ts_ms / 1000)
                 except (ValueError, IndexError):
                     pass
             else:
                 try:
-                    dt = datetime.fromisoformat(str(start_raw))
+                    dt = datetime.fromisoformat(start_raw)
                 except ValueError:
                     pass
         if dt:
             dt_str = f"{HEBREW_DAYS[dt.weekday()]}, {dt.strftime('%d/%m/%Y %H:%M')}"
         else:
-            dt_str = str(start_raw)
+            dt_str = start_raw
 
-        if session_url:
-            link = session_url
-        else:
-            try:
-                link = KNESSET_SESSION_URL.format(session_id=int(session_id)) if session_id else "#"
-            except (ValueError, TypeError):
-                link = "#"
+        try:
+            link = KNESSET_SESSION_URL.format(session_id=int(session_id)) if session_id else "#"
+        except (ValueError, TypeError):
+            link = "#"
 
         sessions.append({
             "title": title,
