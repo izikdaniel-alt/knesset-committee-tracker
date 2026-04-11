@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Bash(powershell:*)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(winget install:*)",
+      "Bash(\"C:\\\\Users\\\\user\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python311\\\\python.exe\" -m pip install google-generativeai)",
+      "Bash('C:\\\\Users\\\\user\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python311\\\\python.exe' -c ':*)",
+      "Bash(\"C:\\\\Users\\\\user\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python311\\\\python.exe\" knesset_monitor.py)",
+      "Bash(git remote:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(git rm:*)",
+      "Bash(git pull:*)",
+      "Bash(PYTHONIOENCODING=utf-8 python knesset_monitor.py --preview)"
+    ]
+  }
+}

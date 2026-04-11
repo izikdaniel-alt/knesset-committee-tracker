@@ -39,7 +39,7 @@ GMAIL_APP_PASS = os.getenv("GMAIL_APP_PASS")
 RECIPIENT_EMAIL = os.getenv("RECIPIENT_EMAIL")
 GITHUB_PAGES_URL = os.getenv("GITHUB_PAGES_URL", "")
 
-GEMINI_MODEL = "models/gemini-2.0-flash-lite"
+GEMINI_MODEL = "models/gemini-2.5-flash"
 BATCH_SIZE = 150          # max sessions per Gemini call to stay within token limits
 MAX_GEMINI_RETRIES = 3
 
@@ -47,7 +47,9 @@ HEBREW_DAYS = ["יום שני", "יום שלישי", "יום רביעי", "יו�
 
 KNESSET_API = (
     "https://knesset.gov.il/Odata/ParliamentInfo.svc/KNS_CommitteeSession"
-    "?$filter=StartDate ge datetime'{start}' and StartDate le datetime'{end}'"
+    "?$filter=KnessetNum eq 25"
+    " and StartDate ge datetime'{start}'"
+    " and StartDate le datetime'{end}'"
     "&$expand=KNS_Committee,KNS_CmtSessionItems"
     "&$orderby=StartDate asc"
     "&$format=json"
@@ -116,6 +118,7 @@ def fetch_sessions() -> list[dict]:
     )
 
     log.info("Fetching sessions from Knesset API…")
+    log.info("Request URL: %s", url)
     try:
         resp = _make_http_session().get(url, timeout=30, headers={"Accept": "application/json"})
         resp.raise_for_status()
