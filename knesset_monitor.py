@@ -46,12 +46,13 @@ MAX_GEMINI_RETRIES = 3
 HEBREW_DAYS = ["יום שני", "יום שלישי", "יום רביעי", "יום חמישי", "יום שישי", "יום שבת", "יום ראשון"]
 
 KNESSET_API = (
-    "https://main.knesset.gov.il/Odata/ParliamentInfo.svc/KNS_CommitteeSession"
+    "https://knesset.gov.il/Odata/ParliamentInfo.svc/KNS_CommitteeSession"
     "?$filter=KnessetNum eq 25"
     " and StartDate ge datetime'{start}'"
     " and StartDate le datetime'{end}'"
     "&$expand=KNS_Committee,KNS_CmtSessionItems"
     "&$orderby=StartDate asc"
+    "&$format=json"
 )
 
 KNESSET_SESSION_URL = (
