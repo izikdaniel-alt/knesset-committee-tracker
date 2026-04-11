@@ -14,6 +14,7 @@ import smtplib
 import sys
 import time
 from datetime import datetime, timedelta
+from urllib.parse import quote as url_quote
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
@@ -130,7 +131,7 @@ def fetch_sessions() -> list[dict]:
     )
 
     if SCRAPER_API_KEY:
-        fetch_url = f"http://api.scraperapi.com?api_key={SCRAPER_API_KEY}&url={requests.utils.quote(knesset_url, safe='')}"
+        fetch_url = f"http://api.scraperapi.com?api_key={SCRAPER_API_KEY}&url={url_quote(knesset_url, safe='')}&country_code=il"
         headers = {}
         log.info("Using ScraperAPI proxy…")
     else:
