@@ -52,7 +52,6 @@ KNESSET_API = (
     " and StartDate le datetime'{end}'"
     "&$expand=KNS_Committee,KNS_CmtSessionItems"
     "&$orderby=StartDate asc"
-    "&$format=json"
 )
 
 KNESSET_SESSION_URL = (
@@ -103,7 +102,8 @@ BROWSER_HEADERS = {
         "AppleWebKit/537.36 (KHTML, like Gecko) "
         "Chrome/120.0.0.0 Safari/537.36"
     ),
-    "Accept": "application/json",
+    "Accept": "application/json, text/plain, */*",
+    "Accept-Encoding": "gzip, deflate, br",
 }
 
 
@@ -130,15 +130,37 @@ def fetch_sessions() -> list[dict]:
 
     log.info("Fetching sessions from Knesset API…")
     log.info("Request URL: %s", url)
+
+    http = _make_http_session()
+    resp = None
+    for attempt in range(2):
+        try:
+            resp = http.get(url, timeout=30)
+            log.info("HTTP %d from Knesset API (attempt %d)", resp.status_code, attempt + 1)
+            if not resp.ok:
+                log.error("API error %d — response: %s", resp.status_code, resp.text[:200])
+                resp.raise_for_status()
+            body = resp.text.strip()
+            if not body or body.lower().startswith("<!doctype html"):
+                log.error("Received HTML/Empty instead of JSON (attempt %d): %s", attempt + 1, body[:200])
+                if attempt == 0:
+                    time.sleep(2)
+                    continue
+                return []
+            break
+        except requests.RequestException as exc:
+            log.error("API request failed (attempt %d): %s", attempt + 1, exc)
+            if attempt == 0:
+                time.sleep(2)
+                continue
+            return []
+    else:
+        return []
+
     try:
-        resp = _make_http_session().get(url, timeout=30)
-        log.info("HTTP %d from Knesset API", resp.status_code)
-        if not resp.ok:
-            log.error("API error %d — response: %s", resp.status_code, resp.text[:200])
-        resp.raise_for_status()
         data = resp.json()
-    except requests.RequestException as exc:
-        log.error("API request failed: %s", exc)
+    except ValueError as exc:
+        log.error("JSON parse error: %s — body: %s", exc, resp.text[:200])
         return []
 
     raw = data.get("value", [])
