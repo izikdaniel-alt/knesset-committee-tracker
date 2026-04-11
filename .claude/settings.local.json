@@ -16,7 +16,8 @@
       "Bash(git push:*)",
       "Bash(git rm:*)",
       "Bash(git pull:*)",
-      "Bash(PYTHONIOENCODING=utf-8 python knesset_monitor.py --preview)"
+      "Bash(PYTHONIOENCODING=utf-8 python knesset_monitor.py --preview)",
+      "Bash(pip install:*)"
     ]
   }
 }

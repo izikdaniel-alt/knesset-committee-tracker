@@ -15,6 +15,7 @@ import sys
 import time
 from datetime import datetime, timedelta
 from urllib.parse import quote as url_quote
+from zoneinfo import ZoneInfo
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
@@ -46,6 +47,7 @@ BATCH_SIZE = 150          # max sessions per Gemini call to stay within token li
 MAX_GEMINI_RETRIES = 3
 
 HEBREW_DAYS = ["יום שני", "יום שלישי", "יום רביעי", "יום חמישי", "יום שישי", "יום שבת", "יום ראשון"]
+ISRAEL_TZ = ZoneInfo("Asia/Jerusalem")
 
 KNESSET_API = (
     "https://knesset.gov.il/Odata/ParliamentInfo.svc/KNS_CommitteeSession"
@@ -122,7 +124,7 @@ def _make_http_session() -> requests.Session:
 # ---------------------------------------------------------------------------
 
 def fetch_sessions() -> list[dict]:
-    today = datetime.now()
+    today = datetime.now(ISRAEL_TZ)
     end = today + timedelta(days=30)
 
     knesset_url = KNESSET_API.format(
@@ -1072,7 +1074,7 @@ def main() -> None:
         log.error("GEMINI_API_KEY is not set. Aborting.")
         sys.exit(1)
 
-    generated_at = datetime.now()
+    generated_at = datetime.now(ISRAEL_TZ)
 
     sessions = fetch_sessions()
     results = analyse_with_gemini(sessions)
