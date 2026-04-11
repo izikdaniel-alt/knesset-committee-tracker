@@ -38,6 +38,7 @@ GMAIL_USER = os.getenv("GMAIL_USER")
 GMAIL_APP_PASS = os.getenv("GMAIL_APP_PASS")
 RECIPIENT_EMAIL = os.getenv("RECIPIENT_EMAIL")
 GITHUB_PAGES_URL = os.getenv("GITHUB_PAGES_URL", "")
+SCRAPER_API_KEY = os.getenv("SCRAPER_API_KEY")
 
 GEMINI_MODEL = "models/gemini-2.5-flash"
 BATCH_SIZE = 150          # max sessions per Gemini call to stay within token limits
@@ -97,23 +98,13 @@ ANALYSIS_PROMPT = """\
 # HTTP session with retry
 # ---------------------------------------------------------------------------
 
-BROWSER_HEADERS = {
+DIRECT_HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         "AppleWebKit/537.36 (KHTML, like Gecko) "
         "Chrome/120.0.0.0 Safari/537.36"
     ),
-    "Accept": "application/json, text/plain, */*",
-    "Accept-Language": "he-IL,he;q=0.9,en-US;q=0.8,en;q=0.7",
-    "Accept-Encoding": "gzip, deflate, br",
-    "Cache-Control": "max-age=0",
-    "Referer": "https://main.knesset.gov.il/",
-    "Origin": "https://main.knesset.gov.il",
-    "Sec-Ch-Ua": '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
-    "Sec-Fetch-Dest": "document",
-    "Sec-Fetch-Mode": "navigate",
-    "Sec-Fetch-Site": "none",
-    "Sec-Fetch-User": "?1",
+    "Accept": "application/json",
 }
 
 
@@ -121,7 +112,7 @@ def _make_http_session() -> requests.Session:
     session = requests.Session()
     retry = Retry(total=3, backoff_factor=1, status_forcelist=[429, 500, 502, 503, 504])
     session.mount("https://", HTTPAdapter(max_retries=retry))
-    session.headers.update(BROWSER_HEADERS)
+    session.mount("http://", HTTPAdapter(max_retries=retry))
     return session
 
 
@@ -133,19 +124,28 @@ def fetch_sessions() -> list[dict]:
     today = datetime.now()
     end = today + timedelta(days=30)
 
-    url = KNESSET_API.format(
+    knesset_url = KNESSET_API.format(
         start=today.strftime("%Y-%m-%dT00:00:00"),
         end=end.strftime("%Y-%m-%dT23:59:59"),
     )
 
+    if SCRAPER_API_KEY:
+        fetch_url = f"http://api.scraperapi.com?api_key={SCRAPER_API_KEY}&url={requests.utils.quote(knesset_url, safe='')}"
+        headers = {}
+        log.info("Using ScraperAPI proxy…")
+    else:
+        fetch_url = knesset_url
+        headers = DIRECT_HEADERS
+        log.warning("SCRAPER_API_KEY not set — calling Knesset API directly (may be blocked on CI).")
+
     log.info("Fetching sessions from Knesset API…")
-    log.info("Request URL: %s", url)
+    log.info("Knesset URL: %s", knesset_url)
 
     http = _make_http_session()
     resp = None
     for attempt in range(2):
         try:
-            resp = http.get(url, timeout=30)
+            resp = http.get(fetch_url, headers=headers, timeout=60)
             log.info("HTTP %d from Knesset API (attempt %d)", resp.status_code, attempt + 1)
             if not resp.ok:
                 log.error("API error %d — response: %s", resp.status_code, resp.text[:200])
