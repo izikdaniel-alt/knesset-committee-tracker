@@ -427,7 +427,7 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
             username = parts[0].replace(".github.io", "")
             repo     = parts[1] if len(parts) > 1 else ""
             if username and repo:
-                gh_actions_url = f"https://github.com/{{username}}/{{repo}}/actions"
+                gh_actions_url = f"https://github.com/{username}/{repo}/actions"
         except Exception:
             pass
 
