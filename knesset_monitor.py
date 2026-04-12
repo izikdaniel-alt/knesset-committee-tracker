@@ -320,7 +320,7 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
     count_transport = sum(1 for s in relevant_sessions if s.get("category") == "תחבורה")
     count_energy    = sum(1 for s in relevant_sessions if s.get("category") == "אנרגיה")
 
-    # Relevance map keyed by link so we can enrich all_sessions
+    # Relevance map keyed by link
     relevance_map = {s["link"]: s for s in relevant_sessions if s.get("link")}
 
     enriched = []
@@ -336,7 +336,14 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
     all_sessions_js = json.dumps(enriched, ensure_ascii=False).replace("</script>", "<\\/script>")
     history_js      = json.dumps(history[:10], ensure_ascii=False).replace("</script>", "<\\/script>")
 
-    # ── Table rows ──────────────────────────────────────────────────────────
+    # ── Committee options for advanced search ───────────────────────────────
+    committees = sorted({s.get("committee", "") for s in all_sessions if s.get("committee", "")})
+    committee_opts = "\n".join(
+        f'              <option value="{_html.escape(c)}">{_html.escape(c)}</option>'
+        for c in committees
+    )
+
+    # ── Table rows (plain string concatenation — NOT nested inside outer f-string) ──
     rows_html = ""
     if enriched:
         for idx, s in enumerate(enriched):
@@ -346,54 +353,62 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
             committee = _html.escape(s.get("committee", ""))
             title     = _html.escape(s.get("title", ""))
             dt        = _html.escape(s.get("datetime", ""))
-            date_iso  = s.get("date_iso", "")
+            date_iso  = _html.escape(s.get("date_iso", ""))
             cat_cls   = ("badge-transport" if raw_cat == "תחבורה"
                          else "badge-energy" if raw_cat == "אנרגיה"
                          else "badge-default")
-            search_str   = _html.escape(f"{{s.get('title','')}} {{s.get('committee','')}} {{raw_cat}}")
+            search_str   = _html.escape(f"{s.get('title','')} {s.get('committee','')} {raw_cat}")
             link         = _html.escape(s.get("link") or "#")
             protocol_url = _html.escape(s.get("protocol_url") or "")
-            row_cls      = "row-relevant" if is_rel else "row-other"
-            proto_btn    = (f'<a href="{{protocol_url}}" target="_blank" rel="noopener" '
-                            f'class="btn-protocol" onclick="event.stopPropagation()">פרוטוקול</a>'
-                            if protocol_url else "")
-            rows_html += f"""
-        <tr class="session-row {{row_cls}}" data-idx="{{idx}}" data-cat="{{cat}}"
-            data-search="{{search_str}}" data-date="{{date_iso}}" data-relevant="{{str(is_rel).lower()}}">
-          <td class="td-title-cell"><span class="td-title">{{title}}</span></td>
-          <td data-sort="{{committee}}"><span class="badge badge-committee">{{committee}}</span></td>
-          <td class="td-date" data-sort="{{date_iso}}">{{dt}}</td>
-          <td><span class="badge {{cat_cls}}">{{cat if cat else '—'}}</span></td>
-          <td class="td-action">
-            <a href="{{link}}" target="_blank" rel="noopener" class="btn-open"
-               onclick="event.stopPropagation()">פתח ←</a>
-            {{proto_btn}}
-          </td>
-        </tr>"""
+            rel_str      = "true" if is_rel else "false"
+            cat_display  = cat if cat else "—"
+            proto_btn    = (
+                f'<a href="{protocol_url}" target="_blank" rel="noopener" '
+                f'class="btn-protocol" onclick="event.stopPropagation()">פרוטוקול</a>'
+                if protocol_url else ""
+            )
+            rows_html += (
+                f'<tr class="session-row" data-idx="{idx}" data-cat="{cat}"'
+                f' data-committee="{committee}" data-search="{search_str}"'
+                f' data-date="{date_iso}" data-relevant="{rel_str}">'
+                f'<td class="td-title-cell"><span class="td-title">{title}</span></td>'
+                f'<td data-sort="{committee}"><span class="badge badge-committee">{committee}</span></td>'
+                f'<td class="td-date" data-sort="{date_iso}">{dt}</td>'
+                f'<td><span class="badge {cat_cls}">{cat_display}</span></td>'
+                f'<td class="td-action">'
+                f'<a href="{link}" target="_blank" rel="noopener" class="btn-open"'
+                f' onclick="event.stopPropagation()">פתח ←</a>'
+                f'{proto_btn}'
+                f'</td></tr>\n'
+            )
     else:
-        rows_html = """
-        <tr><td colspan="5" class="no-results">
-          <div class="no-results-icon">📋</div>
-          <p>אין דיונים ב-90 הימים הקרובים</p>
-        </td></tr>"""
+        rows_html = (
+            '<tr><td colspan="5" class="no-results">'
+            '<div class="no-results-icon">📋</div>'
+            '<p>אין דיונים ב-90 הימים הקרובים</p>'
+            '</td></tr>'
+        )
 
     # ── Skeleton rows ────────────────────────────────────────────────────────
-    skel_rows = "\n".join(["""        <tr class="skel-row">
-          <td><div class="skel skel-lg"></div></td>
-          <td><div class="skel skel-sm"></div></td>
-          <td><div class="skel skel-md"></div></td>
-          <td><div class="skel skel-sm"></div></td>
-          <td><div class="skel skel-btn-s"></div></td>
-        </tr>""" for _ in range(5)])
+    skel_row = (
+        '<tr class="skel-row">'
+        '<td><div class="skel skel-lg"></div></td>'
+        '<td><div class="skel skel-sm"></div></td>'
+        '<td><div class="skel skel-md"></div></td>'
+        '<td><div class="skel skel-sm"></div></td>'
+        '<td><div class="skel skel-btn-s"></div></td>'
+        '</tr>'
+    )
+    skel_rows = "\n".join([skel_row] * 5)
 
-    # ── History section ──────────────────────────────────────────────────────
-    history_html = ""
+    # ── History modal rows ────────────────────────────────────────────────────
+    history_modal_body = ""
     if history:
-        runs_html = ""
         for run in history[:10]:
             run_date    = _html.escape(run.get("date", ""))
             run_rel     = run.get("relevant_sessions", [])
             run_scanned = run.get("total_scanned", 0)
+            rel_count   = len(run_rel)
             inner = ""
             if run_rel:
                 for rs in run_rel:
@@ -402,21 +417,25 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
                     rs_link    = _html.escape(rs.get("link") or "#")
                     badge_cls  = "badge-transport" if rs_cat == "תחבורה" else "badge-energy"
                     rs_cat_esc = _html.escape(rs_cat)
-                    inner += (f'<div class="h-item"><a href="{{rs_link}}" target="_blank">{{rs_title}}</a>'
-                              f'<span class="badge {{badge_cls}}" style="font-size:.62rem;padding:2px 8px">{{rs_cat_esc}}</span></div>')
+                    inner += (
+                        f'<div class="h-item">'
+                        f'<a href="{rs_link}" target="_blank">{rs_title}</a>'
+                        f'<span class="badge {badge_cls}" style="font-size:.62rem;padding:2px 8px">{rs_cat_esc}</span>'
+                        f'</div>'
+                    )
             else:
                 inner = '<div class="h-item h-empty">אין דיונים רלוונטיים</div>'
-            runs_html += f"""      <details class="h-run">
-        <summary class="h-sum">
-          <span class="h-date">{{run_date}}</span>
-          <span class="h-stats">{{len(run_rel)}} רלוונטיים · {{run_scanned}} נסרקו</span>
-        </summary>
-        <div class="h-body">{{inner}}</div>
-      </details>
-"""
-        history_html = f"""  <div class="history-wrap">
-    <h3 class="history-title">📅 היסטוריית סריקות</h3>
-{{runs_html}}  </div>"""
+            history_modal_body += (
+                f'<details class="h-run">'
+                f'<summary class="h-sum">'
+                f'<span class="h-date">{run_date}</span>'
+                f'<span class="h-stats">{rel_count} רלוונטיים · {run_scanned} נסרקו</span>'
+                f'</summary>'
+                f'<div class="h-body">{inner}</div>'
+                f'</details>\n'
+            )
+    else:
+        history_modal_body = '<p class="h-empty" style="padding:24px;text-align:center;color:var(--txt-3)">אין היסטוריית סריקות עדיין</p>'
 
     # ── GitHub Actions URL ───────────────────────────────────────────────────
     gh_actions_url = "#"
@@ -431,6 +450,7 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
         except Exception:
             pass
 
+    # ── Full HTML (outer f-string; all {{}} here are CSS/JS literal braces) ─
     dashboard_html = f"""<!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -464,7 +484,7 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
     body {{ font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--txt);
             min-height: 100vh; -webkit-font-smoothing: antialiased; }}
 
-    /* ─── LOADING OVERLAY ─── */
+    /* ─── LOADING BAR ─── */
     #loading-bar {{
       position: fixed; top: 0; left: 0; right: 0; height: 3px;
       background: linear-gradient(90deg, var(--blue), #60A5FA, var(--blue));
@@ -485,9 +505,7 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
       background-size: 600px 100%;
       animation: shimmer 1.4s infinite linear;
     }}
-    .skel-lg  {{ width: 80%; }}
-    .skel-md  {{ width: 55%; }}
-    .skel-sm  {{ width: 38%; }}
+    .skel-lg  {{ width: 80%; }} .skel-md {{ width: 55%; }} .skel-sm {{ width: 38%; }}
     .skel-btn-s {{ width: 60px; height: 28px; border-radius: 7px; }}
     .skel-row td {{ padding: 18px 20px; border-bottom: 1px solid var(--border-lt); }}
     #real-tbody {{ opacity: 0; transition: opacity .25s; }}
@@ -505,17 +523,24 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
                  display: grid; place-items: center; font-size: 1rem; flex-shrink: 0; }}
     .hdr-name {{ font-size: .98rem; font-weight: 700; color: #F1F5F9; }}
     .hdr-sub  {{ font-size: .7rem; color: #64748B; margin-top: 1px; }}
-    .hdr-right {{ display: flex; align-items: center; gap: 14px; }}
+    .hdr-right {{ display: flex; align-items: center; gap: 10px; }}
     .hdr-ts {{ font-size: .72rem; color: #64748B; display: flex; flex-direction: column; align-items: flex-end; }}
     .hdr-ts span {{ color: #94A3B8; font-size: .8rem; font-weight: 500; }}
-    .btn-refresh {{
+    .btn-hdr {{
       display: inline-flex; align-items: center; gap: 6px;
-      background: rgba(37,99,235,.15); border: 1px solid rgba(37,99,235,.4);
-      color: #93C5FD; border-radius: 8px; padding: 7px 14px;
+      border-radius: 8px; padding: 7px 14px;
       font-size: .8rem; font-weight: 600; font-family: 'Heebo', sans-serif;
       text-decoration: none; transition: background .15s, border-color .15s; white-space: nowrap;
+      cursor: pointer; border: 1px solid;
     }}
-    .btn-refresh:hover {{ background: rgba(37,99,235,.28); border-color: #3B82F6; color: #BFDBFE; }}
+    .btn-hdr-blue {{
+      background: rgba(37,99,235,.15); border-color: rgba(37,99,235,.4); color: #93C5FD;
+    }}
+    .btn-hdr-blue:hover {{ background: rgba(37,99,235,.28); border-color: #3B82F6; color: #BFDBFE; }}
+    .btn-hdr-ghost {{
+      background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.12); color: #94A3B8;
+    }}
+    .btn-hdr-ghost:hover {{ background: rgba(255,255,255,.12); color: #CBD5E1; }}
 
     /* ─── HERO KPI ─── */
     .hero {{ background: var(--hdr); border-bottom: 1px solid rgba(255,255,255,.06); padding: 20px 28px 24px; }}
@@ -542,60 +567,69 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
 
     /* ─── PANEL ─── */
     .panel {{ background: var(--surface); border-radius: 14px; border: 1px solid var(--border);
-              box-shadow: var(--shadow); overflow: hidden; }}
+              box-shadow: var(--shadow); overflow: hidden; margin-bottom: 20px; }}
+
+    /* ─── TOOLBAR (category pills row) ─── */
     .toolbar {{
-      padding: 16px 22px; border-bottom: 1px solid var(--border-lt);
-      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      padding: 14px 20px; border-bottom: 1px solid var(--border-lt);
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
     }}
-    .toolbar-title {{ font-size: .9rem; font-weight: 700; color: var(--txt); flex: 1; min-width: 100px; }}
-    .toolbar-title small {{ display: block; font-size: .72rem; color: var(--txt-3); font-weight: 400; margin-top: 1px; }}
+    .toolbar-title {{ font-size: .9rem; font-weight: 700; color: var(--txt); flex: 1; min-width: 120px; }}
+    .toolbar-title small {{ display: block; font-size: .7rem; color: var(--txt-3); font-weight: 400; margin-top: 1px; }}
 
-    /* Search */
-    .search-wrap {{ position: relative; flex: 1; max-width: 240px; }}
-    .search-ico {{ position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-                   font-size: .85rem; pointer-events: none; }}
-    .search-inp {{
-      width: 100%; padding: 8px 34px 8px 12px; border: 1px solid var(--border); border-radius: 8px;
-      font-family: 'Heebo', sans-serif; font-size: .85rem; color: var(--txt); background: var(--bg);
-      outline: none; transition: border-color .15s, box-shadow .15s; direction: rtl;
-    }}
-    .search-inp:focus {{ border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.1); background: #fff; }}
-    .search-inp::placeholder {{ color: var(--txt-3); }}
-
-    /* Date range */
-    .date-range {{ display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }}
-    .date-range label {{ font-size: .75rem; color: var(--txt-3); white-space: nowrap; }}
-    .date-inp {{
-      padding: 6px 8px; border: 1px solid var(--border); border-radius: 7px;
-      font-family: 'Heebo', sans-serif; font-size: .78rem; color: var(--txt);
-      background: var(--bg); outline: none; cursor: pointer;
-      transition: border-color .15s;
-    }}
-    .date-inp:focus {{ border-color: var(--blue); background: #fff; }}
-
-    /* Filter pills */
-    .filters {{ display: flex; gap: 6px; flex-wrap: wrap; }}
+    /* Category pills */
+    .filters {{ display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }}
     .fpill {{
       border: 1px solid var(--border); border-radius: 20px; padding: 5px 14px;
       font-size: .78rem; font-weight: 500; cursor: pointer; font-family: 'Heebo', sans-serif;
       background: var(--surface); color: var(--txt-2); transition: all .15s; white-space: nowrap;
       display: inline-flex; align-items: center; gap: 5px;
     }}
-    .fpill .fc {{ font-size: .7rem; background: var(--border-lt); border-radius: 20px; padding: 0 6px; }}
+    .fpill .fc {{ font-size: .7rem; background: var(--border-lt); border-radius: 20px; padding: 1px 7px; min-width: 20px; text-align: center; }}
     .fpill:hover {{ border-color: var(--blue); color: var(--blue); }}
     .fpill.active {{ background: var(--blue); border-color: var(--blue); color: #fff; font-weight: 600; }}
     .fpill.active .fc {{ background: rgba(255,255,255,.2); color: #fff; }}
     .fpill[data-filter="תחבורה"].active {{ background: var(--emerald); border-color: var(--emerald); }}
     .fpill[data-filter="אנרגיה"].active  {{ background: var(--amber);   border-color: var(--amber);   }}
 
-    /* Show-all toggle */
-    .btn-show-all {{
-      border: 1px solid var(--border); border-radius: 20px; padding: 5px 14px;
-      font-size: .78rem; font-weight: 500; cursor: pointer; font-family: 'Heebo', sans-serif;
-      background: var(--surface); color: var(--txt-2); transition: all .15s; white-space: nowrap;
+    /* ─── ADVANCED SEARCH PANEL ─── */
+    .adv-search {{
+      background: #F8FAFC; border-bottom: 1px solid var(--border);
+      padding: 0; overflow: hidden;
+      max-height: 0; transition: max-height .3s ease, padding .3s ease;
     }}
-    .btn-show-all.on {{ background: #1E293B; border-color: #334155; color: #94A3B8; }}
-    .btn-show-all:hover {{ border-color: var(--blue); color: var(--blue); }}
+    .adv-search.open {{ max-height: 200px; padding: 16px 20px; }}
+    .adv-search-inner {{
+      display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;
+    }}
+    .adv-field {{ display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 140px; }}
+    .adv-label {{ font-size: .72rem; font-weight: 600; color: var(--txt-3); letter-spacing: .03em; }}
+    .adv-inp, .adv-sel {{
+      padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px;
+      font-family: 'Heebo', sans-serif; font-size: .84rem; color: var(--txt);
+      background: #fff; outline: none; transition: border-color .15s, box-shadow .15s;
+      direction: rtl; width: 100%;
+    }}
+    .adv-inp:focus, .adv-sel:focus {{
+      border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+    }}
+    .adv-inp::placeholder {{ color: var(--txt-3); }}
+    .adv-date-pair {{ display: flex; gap: 6px; align-items: center; }}
+    .adv-date-pair span {{ font-size: .75rem; color: var(--txt-3); }}
+    .adv-actions {{ display: flex; gap: 8px; flex-shrink: 0; align-items: flex-end; padding-bottom: 0; }}
+    .btn-search {{
+      padding: 8px 20px; background: var(--blue); color: #fff; border: none;
+      border-radius: 8px; font-family: 'Heebo', sans-serif; font-size: .84rem;
+      font-weight: 700; cursor: pointer; transition: background .15s; white-space: nowrap;
+    }}
+    .btn-search:hover {{ background: var(--blue-dk); }}
+    .btn-reset {{
+      padding: 8px 14px; background: transparent; color: var(--txt-3);
+      border: 1px solid var(--border); border-radius: 8px;
+      font-family: 'Heebo', sans-serif; font-size: .82rem; cursor: pointer;
+      transition: all .15s; white-space: nowrap;
+    }}
+    .btn-reset:hover {{ color: var(--txt-2); border-color: var(--txt-3); }}
 
     /* Table */
     .tbl-wrap {{ overflow-x: auto; }}
@@ -614,17 +648,16 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
     .session-row {{ cursor: pointer; transition: background .1s; }}
     .session-row:last-child td {{ border-bottom: none; }}
     .session-row:hover td {{ background: #F8FAFF; }}
-    .session-row:active td {{ background: #EFF6FF; }}
-    .row-other td {{ opacity: .55; }}
-    .row-other:hover td {{ opacity: .8; background: #FAFAFA; }}
-
-    .td-title-cell {{ max-width: 400px; }}
+    .session-row[data-relevant="false"] td {{ opacity: .58; }}
+    .session-row[data-relevant="false"]:hover td {{ opacity: .82; background: #FAFAFA; }}
+    .td-title-cell {{ max-width: 380px; }}
     .td-title {{
       font-size: .9rem; font-weight: 600; color: var(--txt); line-height: 1.5;
       display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
     }}
     .td-date   {{ font-size: .82rem; color: var(--txt-2); white-space: nowrap; font-weight: 500; }}
     .td-action {{ text-align: center; white-space: nowrap; }}
+    #no-results-row {{ display: none; }}
 
     /* Badges */
     .badge {{ display: inline-block; border-radius: 20px; padding: 3px 11px;
@@ -634,104 +667,99 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
     .badge-energy     {{ background: var(--amber-lt);   color: var(--amber);   }}
     .badge-default    {{ background: var(--border-lt);  color: var(--txt-3);   }}
 
-    /* Buttons */
+    /* Action buttons */
     .btn-open {{
       display: inline-flex; align-items: center;
       background: var(--blue); color: #fff; border-radius: 7px;
       padding: 6px 14px; font-size: .78rem; font-weight: 600;
       font-family: 'Heebo', sans-serif; text-decoration: none;
-      transition: background .15s, box-shadow .15s; white-space: nowrap;
+      transition: background .15s; white-space: nowrap;
     }}
-    .btn-open:hover {{ background: var(--blue-dk); box-shadow: 0 4px 12px rgba(37,99,235,.3); }}
+    .btn-open:hover {{ background: var(--blue-dk); }}
     .btn-protocol {{
       display: inline-flex; align-items: center; margin-right: 6px;
       background: transparent; color: var(--txt-2); border: 1px solid var(--border);
       border-radius: 7px; padding: 5px 12px; font-size: .75rem; font-weight: 500;
-      font-family: 'Heebo', sans-serif; text-decoration: none;
-      transition: all .15s; white-space: nowrap;
+      font-family: 'Heebo', sans-serif; text-decoration: none; transition: all .15s; white-space: nowrap;
     }}
     .btn-protocol:hover {{ border-color: var(--blue); color: var(--blue); background: var(--blue-lt); }}
 
     /* No results */
-    .no-results {{ text-align: center; padding: 64px 24px !important; color: var(--txt-3); }}
-    .no-results-icon {{ font-size: 2.2rem; margin-bottom: 12px; }}
-    .no-results p {{ font-size: .95rem; }}
+    .no-results {{ text-align: center; padding: 56px 24px !important; color: var(--txt-3); }}
+    .no-results-icon {{ font-size: 2rem; margin-bottom: 10px; }}
+    .no-results p {{ font-size: .92rem; }}
 
-    /* ─── MODAL ─── */
+    /* ─── MODALS (shared) ─── */
     .modal-overlay {{
       display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,.45); backdrop-filter: blur(3px);
+      background: rgba(0,0,0,.48); backdrop-filter: blur(3px);
       z-index: 500; align-items: center; justify-content: center; padding: 16px;
     }}
     .modal-overlay.open {{ display: flex; }}
     .modal {{
-      background: var(--surface); border-radius: 18px; width: 100%; max-width: 540px;
+      background: var(--surface); border-radius: 18px; width: 100%; max-width: 560px;
       max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 64px rgba(0,0,0,.25);
-      animation: modalIn .22s cubic-bezier(.34,1.3,.64,1); position: relative;
+      animation: modalIn .2s cubic-bezier(.34,1.3,.64,1);
     }}
     @keyframes modalIn {{
-      from {{ opacity:0; transform: translateY(18px) scale(.97); }}
-      to   {{ opacity:1; transform: translateY(0) scale(1); }}
+      from {{ opacity:0; transform: translateY(16px) scale(.97); }}
+      to   {{ opacity:1; transform: translateY(0)   scale(1);   }}
     }}
     .modal-head {{
-      padding: 22px 24px 18px; border-bottom: 1px solid var(--border-lt);
+      padding: 20px 24px 16px; border-bottom: 1px solid var(--border-lt);
       display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+      position: sticky; top: 0; background: var(--surface); z-index: 1;
     }}
+    .modal-head-title {{ font-size: .88rem; font-weight: 700; color: var(--txt); }}
     .modal-close {{
       background: var(--bg); border: none; border-radius: 8px; width: 32px; height: 32px;
       cursor: pointer; font-size: 1rem; color: var(--txt-3); flex-shrink: 0;
       display: grid; place-items: center; transition: background .15s;
     }}
     .modal-close:hover {{ background: var(--border); color: var(--txt); }}
-    .modal-body {{ padding: 22px 24px 26px; }}
-    .modal-title {{ font-size: 1.05rem; font-weight: 700; color: var(--txt); line-height: 1.5; margin-bottom: 18px; }}
-    .modal-meta {{ display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }}
+    .modal-body {{ padding: 20px 24px 24px; }}
+
+    /* Detail modal */
+    .modal-title {{ font-size: 1.05rem; font-weight: 700; color: var(--txt); line-height: 1.5; margin-bottom: 16px; }}
+    .modal-meta {{ display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }}
     .modal-meta-row {{ display: flex; align-items: center; gap: 10px; font-size: .85rem; color: var(--txt-2); }}
     .modal-meta-ico {{ font-size: 1rem; }}
     .modal-relevance {{
-      background: var(--bg); border-radius: 10px; padding: 14px 16px;
-      font-size: .85rem; color: var(--txt-2); line-height: 1.6; margin-bottom: 20px; font-style: italic;
+      background: var(--bg); border-radius: 10px; padding: 12px 16px;
+      font-size: .85rem; color: var(--txt-2); line-height: 1.6; margin-bottom: 18px; font-style: italic;
     }}
     .modal-actions {{ display: flex; gap: 10px; flex-wrap: wrap; }}
     .btn-modal-open {{
       flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
-      background: var(--blue); color: #fff; border-radius: 10px; padding: 12px 20px;
-      font-size: .9rem; font-weight: 700; font-family: 'Heebo', sans-serif; text-decoration: none;
-      transition: background .15s, box-shadow .15s;
+      background: var(--blue); color: #fff; border-radius: 10px; padding: 11px 18px;
+      font-size: .88rem; font-weight: 700; font-family: 'Heebo', sans-serif; text-decoration: none;
+      transition: background .15s;
     }}
-    .btn-modal-open:hover {{ background: var(--blue-dk); box-shadow: 0 6px 18px rgba(37,99,235,.35); }}
+    .btn-modal-open:hover {{ background: var(--blue-dk); }}
     .btn-modal-proto {{
       flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
       background: transparent; color: var(--txt-2); border: 1px solid var(--border);
-      border-radius: 10px; padding: 12px 20px; font-size: .9rem; font-weight: 600;
+      border-radius: 10px; padding: 11px 18px; font-size: .88rem; font-weight: 600;
       font-family: 'Heebo', sans-serif; text-decoration: none; transition: all .15s;
     }}
     .btn-modal-proto:hover {{ border-color: var(--blue); color: var(--blue); background: var(--blue-lt); }}
 
-    /* ─── HISTORY ─── */
-    .history-wrap {{
-      max-width: 1200px; margin: 24px auto 0; padding: 0 20px;
-    }}
-    .history-title {{
-      font-size: .88rem; font-weight: 700; color: var(--txt-2);
-      margin-bottom: 10px; padding-right: 4px;
-    }}
+    /* History modal */
+    .modal-history {{ max-width: 640px; }}
     .h-run {{
-      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
-      margin-bottom: 8px; overflow: hidden;
+      border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; overflow: hidden;
     }}
     .h-sum {{
-      padding: 12px 18px; cursor: pointer; list-style: none;
+      padding: 12px 16px; cursor: pointer; list-style: none;
       display: flex; align-items: center; justify-content: space-between; gap: 12px;
-      font-size: .82rem; color: var(--txt-2); user-select: none;
-      transition: background .12s;
+      font-size: .82rem; color: var(--txt-2); user-select: none; transition: background .12s;
     }}
     .h-sum::-webkit-details-marker {{ display: none; }}
     .h-run[open] .h-sum {{ background: var(--border-lt); }}
     .h-sum:hover {{ background: var(--border-lt); }}
     .h-date {{ font-weight: 600; color: var(--txt); }}
-    .h-stats {{ font-size: .75rem; color: var(--txt-3); }}
-    .h-body {{ padding: 10px 18px 14px; border-top: 1px solid var(--border-lt); }}
+    .h-stats {{ font-size: .74rem; color: var(--txt-3); }}
+    .h-body {{ padding: 8px 16px 12px; border-top: 1px solid var(--border-lt); }}
     .h-item {{
       display: flex; align-items: center; justify-content: space-between; gap: 10px;
       padding: 6px 0; border-bottom: 1px solid var(--border-lt); font-size: .82rem;
@@ -739,7 +767,7 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
     .h-item:last-child {{ border-bottom: none; }}
     .h-item a {{ color: var(--blue); text-decoration: none; flex: 1; }}
     .h-item a:hover {{ text-decoration: underline; }}
-    .h-empty {{ color: var(--txt-3); font-style: italic; padding: 8px 0; }}
+    .h-empty {{ color: var(--txt-3); font-style: italic; }}
 
     /* ─── FOOTER ─── */
     .footer {{ text-align: center; padding: 20px 24px 16px; color: var(--txt-3); font-size: .72rem; }}
@@ -753,24 +781,25 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
 
     /* ─── RESPONSIVE ─── */
     @media (max-width: 768px) {{
-      .hdr {{ padding: 0 16px; }} .hdr-sub, .hdr-ts .label {{ display: none; }}
-      .hero {{ padding: 14px 16px 18px; }} .hero-grid {{ gap: 10px; }}
-      .kpi {{ padding: 14px; }} .kpi-val {{ font-size: 1.9rem; }}
-      .main {{ padding: 16px 12px 48px; }} .toolbar {{ flex-direction: column; align-items: stretch; }}
-      .search-wrap {{ max-width: 100%; }} th, td {{ padding: 12px 14px; }}
-      .td-title-cell {{ max-width: 220px; }} .modal {{ border-radius: 14px; }}
-      .date-range {{ flex-wrap: wrap; }}
+      .hdr {{ padding: 0 14px; }} .hdr-sub {{ display: none; }}
+      .hero {{ padding: 14px 14px 18px; }} .hero-grid {{ gap: 10px; }}
+      .kpi {{ padding: 14px; gap: 12px; }} .kpi-val {{ font-size: 1.9rem; }}
+      .main {{ padding: 14px 10px 48px; }}
+      .toolbar {{ flex-direction: column; align-items: stretch; gap: 8px; }}
+      .adv-search-inner {{ flex-direction: column; }}
+      .adv-date-pair {{ flex-wrap: wrap; }}
+      th, td {{ padding: 11px 12px; }} .td-title-cell {{ max-width: 200px; }}
+      .modal {{ border-radius: 14px; }} .btn-hdr-blue span {{ display: none; }}
     }}
     @media (max-width: 480px) {{
-      .kpi-hint {{ display: none; }} .kpi {{ gap: 10px; }}
-      .kpi-ico {{ width: 36px; height: 36px; font-size: 1rem; }} .kpi-val {{ font-size: 1.6rem; }}
-      .btn-refresh {{ padding: 6px 10px; font-size: .75rem; }}
+      .kpi-hint {{ display: none; }} .kpi-ico {{ width: 36px; height: 36px; font-size: 1rem; }}
+      .kpi-val {{ font-size: 1.6rem; }} .hero-grid {{ grid-template-columns: 1fr 1fr; gap: 8px; }}
+      .kpi-energy {{ grid-column: 1 / -1; }}
     }}
   </style>
 </head>
 <body>
 
-  <!-- Loading bar (feature 13) -->
   <div id="loading-bar"></div>
 
   <!-- ═══ HEADER ═══ -->
@@ -784,10 +813,11 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
     </div>
     <div class="hdr-right">
       <div class="hdr-ts">
-        <span class="label" style="font-size:.68rem;color:#64748B;">עודכן לאחרונה</span>
+        <span style="font-size:.68rem;color:#64748B;">עודכן</span>
         <span>{date_str}</span>
       </div>
-      <a href="{gh_actions_url}" target="_blank" rel="noopener" class="btn-refresh">🔄 רענן נתונים</a>
+      <button class="btn-hdr btn-hdr-ghost" onclick="openHistoryModal()">📅 <span>היסטוריה</span></button>
+      <a href="{gh_actions_url}" target="_blank" rel="noopener" class="btn-hdr btn-hdr-blue">🔄 <span>רענן</span></a>
     </div>
   </header>
 
@@ -797,15 +827,15 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
       <div class="kpi kpi-total">
         <div class="kpi-ico">📋</div>
         <div>
-          <div class="kpi-val">{total_relevant}</div>
-          <div class="kpi-lbl">סה״כ דיונים</div>
-          <div class="kpi-hint">90 הימים הקרובים</div>
+          <div class="kpi-val" id="kpi-total">{total_scanned}</div>
+          <div class="kpi-lbl">דיונים מוצגים</div>
+          <div class="kpi-hint">מתוך {total_scanned} שנסרקו</div>
         </div>
       </div>
       <div class="kpi kpi-transp">
         <div class="kpi-ico">🚗</div>
         <div>
-          <div class="kpi-val">{count_transport}</div>
+          <div class="kpi-val" id="kpi-transp">{count_transport}</div>
           <div class="kpi-lbl">דיוני תחבורה</div>
           <div class="kpi-hint">תחבורה ציבורית, רכב, כבישים</div>
         </div>
@@ -813,7 +843,7 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
       <div class="kpi kpi-energy">
         <div class="kpi-ico">⚡</div>
         <div>
-          <div class="kpi-val">{count_energy}</div>
+          <div class="kpi-val" id="kpi-energy">{count_energy}</div>
           <div class="kpi-lbl">דיוני אנרגיה</div>
           <div class="kpi-hint">חשמל, גז, אנרגיות מתחדשות</div>
         </div>
@@ -824,70 +854,88 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
   <!-- ═══ MAIN TABLE ═══ -->
   <main class="main">
     <div class="panel">
+
+      <!-- Toolbar: title + category pills + search toggle -->
       <div class="toolbar">
         <div class="toolbar-title">
           לוח דיונים
           <small>לחץ על שורה לפרטים · לחץ על כותרת עמודה למיון</small>
         </div>
-        <div class="search-wrap">
-          <span class="search-ico">🔍</span>
-          <input class="search-inp" id="searchInput" type="text" placeholder="חיפוש לפי נושא, ועדה...">
-        </div>
-        <!-- Date range (feature 1) -->
-        <div class="date-range">
-          <label for="dateFrom">מ:</label>
-          <input class="date-inp" id="dateFrom" type="date" value="{today_iso}">
-          <label for="dateTo">עד:</label>
-          <input class="date-inp" id="dateTo" type="date" value="{end_iso}">
-        </div>
         <div class="filters">
-          <button class="fpill active" data-filter="all">הכל <span class="fc" id="cnt-all">{total_relevant}</span></button>
+          <button class="fpill active" data-filter="all">הכל <span class="fc" id="cnt-all">{total_scanned}</span></button>
           <button class="fpill" data-filter="תחבורה">🚗 תחבורה <span class="fc" id="cnt-transp">{count_transport}</span></button>
           <button class="fpill" data-filter="אנרגיה">⚡ אנרגיה <span class="fc" id="cnt-energy">{count_energy}</span></button>
         </div>
-        <!-- Show all toggle (feature 6) -->
-        <button class="btn-show-all" id="btn-show-all" onclick="toggleShowAll()">👁 הצג הכל</button>
+        <button class="fpill" id="btn-adv-toggle" onclick="toggleAdvSearch()">🔍 חיפוש מתקדם</button>
       </div>
 
+      <!-- Advanced Search (hidden by default) -->
+      <div class="adv-search" id="adv-search">
+        <div class="adv-search-inner">
+          <div class="adv-field">
+            <label class="adv-label" for="adv-text">חיפוש חופשי</label>
+            <input class="adv-inp" id="adv-text" type="text" placeholder="נושא, מילת מפתח...">
+          </div>
+          <div class="adv-field" style="flex:0 0 auto;min-width:0;">
+            <label class="adv-label">טווח תאריכים</label>
+            <div class="adv-date-pair">
+              <input class="adv-inp" id="adv-from" type="date" value="{today_iso}" style="width:140px;">
+              <span>—</span>
+              <input class="adv-inp" id="adv-to" type="date" value="{end_iso}" style="width:140px;">
+            </div>
+          </div>
+          <div class="adv-field">
+            <label class="adv-label" for="adv-committee">ועדה</label>
+            <select class="adv-sel" id="adv-committee">
+              <option value="">כל הוועדות</option>
+{committee_opts}
+            </select>
+          </div>
+          <div class="adv-actions">
+            <button class="btn-search" onclick="FilterManager.runSearch()">חפש</button>
+            <button class="btn-reset"  onclick="FilterManager.resetSearch()">נקה</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table -->
       <div class="tbl-wrap">
         <table>
           <thead>
             <tr>
-              <th class="sortable" data-col="title" onclick="sortBy('title')">
+              <th class="sortable" data-col="title" onclick="FilterManager.sortBy('title')">
                 נושא הדיון <span class="sort-arrow"></span>
               </th>
-              <th class="sortable" data-col="committee" onclick="sortBy('committee')">
+              <th class="sortable" data-col="committee" onclick="FilterManager.sortBy('committee')">
                 ועדה <span class="sort-arrow"></span>
               </th>
-              <th class="sortable sort-desc" data-col="date" onclick="sortBy('date')">
+              <th class="sortable sort-asc" data-col="date" onclick="FilterManager.sortBy('date')">
                 תאריך ושעה <span class="sort-arrow"></span>
               </th>
               <th>תחום</th>
               <th></th>
             </tr>
           </thead>
-          <!-- Skeleton tbody (feature 14) -->
-          <tbody id="skel-tbody">
-{skel_rows}
-          </tbody>
-          <!-- Real tbody, fades in after load -->
-          <tbody id="real-tbody">
-            {rows_html}
+          <tbody id="skel-tbody">{skel_rows}</tbody>
+          <tbody id="real-tbody">{rows_html}
+            <tr id="no-results-row">
+              <td colspan="5" class="no-results">
+                <div class="no-results-icon">🔍</div>
+                <p>לא נמצאו דיונים התואמים את החיפוש</p>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
     </div>
-
-    <!-- ═══ HISTORY (feature 4) ═══ -->
-{history_html}
   </main>
 
   <!-- ═══ DETAIL MODAL ═══ -->
-  <div class="modal-overlay" id="overlay" onclick="closeModal()">
+  <div class="modal-overlay" id="overlay" onclick="closeDetailModal()">
     <div class="modal" onclick="event.stopPropagation()">
       <div class="modal-head">
         <div id="m-badge"></div>
-        <button class="modal-close" onclick="closeModal()">✕</button>
+        <button class="modal-close" onclick="closeDetailModal()">✕</button>
       </div>
       <div class="modal-body">
         <div class="modal-title" id="m-title"></div>
@@ -897,9 +945,22 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
         </div>
         <div class="modal-relevance" id="m-relevance" style="display:none"></div>
         <div class="modal-actions">
-          <a class="btn-modal-open" id="m-link" target="_blank" rel="noopener">פתח בכנסת ←</a>
+          <a class="btn-modal-open"  id="m-link"  target="_blank" rel="noopener">פתח בכנסת ←</a>
           <a class="btn-modal-proto" id="m-proto" target="_blank" rel="noopener" style="display:none">📄 פרוטוקול</a>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ HISTORY MODAL ═══ -->
+  <div class="modal-overlay" id="history-overlay" onclick="closeHistoryModal()">
+    <div class="modal modal-history" onclick="event.stopPropagation()">
+      <div class="modal-head">
+        <div class="modal-head-title">📅 היסטוריית סריקות</div>
+        <button class="modal-close" onclick="closeHistoryModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        {history_modal_body}
       </div>
     </div>
   </div>
@@ -907,8 +968,8 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
   <footer class="footer">
     <div class="sysinfo">
       <div class="sysinfo-item"><span class="sysinfo-dot"></span><span>סריקה אחרונה: <strong>{date_str}</strong></span></div>
-      <div class="sysinfo-item">🔍 דיונים שנסרקו: <strong>{total_scanned}</strong></div>
-      <div class="sysinfo-item">✅ דיונים רלוונטיים: <strong>{total_relevant}</strong></div>
+      <div class="sysinfo-item">🔍 נסרקו: <strong>{total_scanned}</strong></div>
+      <div class="sysinfo-item">✅ רלוונטיים: <strong>{total_relevant}</strong></div>
     </div>
   </footer>
 
@@ -916,155 +977,186 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
     const ALL_SESSIONS = {all_sessions_js};
     const HISTORY      = {history_js};
 
-    let activeFilter = 'all';
-    let searchTerm   = '';
-    let showAll      = false;
-    let sortCol      = 'date';
-    let sortDir      = 'asc';
-    let dateFrom     = document.getElementById('dateFrom').value;
-    let dateTo       = document.getElementById('dateTo').value;
+    // ── FilterManager ────────────────────────────────────────────────────────
+    const FilterManager = (() => {{
+      let activeCategory = 'all';   // instant: category pill
+      let searchText     = '';      // committed on Search button
+      let searchCommittee = '';     // committed on Search button
+      let searchFrom     = '';      // committed on Search button
+      let searchTo       = '';      // committed on Search button
+      let sortCol        = 'date';
+      let sortDir        = 'asc';
 
-    const tbody = document.getElementById('real-tbody');
+      const tbody = () => document.getElementById('real-tbody');
 
-    // ── Skeleton → real content (features 13 + 14) ──────────────────────────
-    document.addEventListener('DOMContentLoaded', () => {{
-      document.getElementById('skel-tbody').style.display = 'none';
-      tbody.classList.add('visible');
-      document.getElementById('loading-bar').style.opacity = '0';
-      setTimeout(() => document.getElementById('loading-bar').remove(), 350);
-      applyFilters();
-    }});
+      function apply() {{
+        const rows = Array.from(tbody().querySelectorAll('.session-row'));
 
-    // ── Filter + sort engine ─────────────────────────────────────────────────
-    function applyFilters() {{
-      const rows = Array.from(tbody.querySelectorAll('.session-row'));
+        // Sort
+        rows.sort((a, b) => {{
+          let va, vb;
+          if (sortCol === 'date') {{
+            va = a.dataset.date || ''; vb = b.dataset.date || '';
+          }} else if (sortCol === 'committee') {{
+            va = a.dataset.committee || ''; vb = b.dataset.committee || '';
+          }} else {{
+            va = a.dataset.search || ''; vb = b.dataset.search || '';
+          }}
+          const c = va.localeCompare(vb, 'he');
+          return sortDir === 'asc' ? c : -c;
+        }});
+        rows.forEach(r => tbody().appendChild(r));
 
-      // Sort
-      rows.sort((a, b) => {{
-        let va, vb;
-        if (sortCol === 'date') {{
-          va = a.dataset.date || '';
-          vb = b.dataset.date || '';
-        }} else if (sortCol === 'committee') {{
-          va = a.querySelector('td:nth-child(2)').dataset.sort || '';
-          vb = b.querySelector('td:nth-child(2)').dataset.sort || '';
-        }} else {{
-          va = a.dataset.search || '';
-          vb = b.dataset.search || '';
-        }}
-        const cmp = va.localeCompare(vb, 'he');
-        return sortDir === 'asc' ? cmp : -cmp;
-      }});
-      rows.forEach(r => tbody.appendChild(r));
+        // Visibility
+        let visTotal = 0, visTr = 0, visEn = 0;
+        rows.forEach(r => {{
+          const cat      = r.dataset.cat       || '';
+          const comm     = r.dataset.committee || '';
+          const search   = r.dataset.search    || '';
+          const date     = r.dataset.date      || '';
+          const relevant = r.dataset.relevant  === 'true';
 
-      // Visibility
-      let visAll = 0, visTr = 0, visEn = 0;
-      rows.forEach(r => {{
-        const isRelevant = r.dataset.relevant === 'true';
-        const matchShow  = showAll || isRelevant;
-        const matchCat   = activeFilter === 'all' || r.dataset.cat === activeFilter;
-        const matchSrch  = !searchTerm || r.dataset.search.includes(searchTerm);
-        const rDate      = r.dataset.date || '';
-        const matchDate  = (!dateFrom || rDate >= dateFrom) && (!dateTo || rDate <= dateTo);
-        const show = matchShow && matchCat && matchSrch && matchDate;
-        r.style.display = show ? '' : 'none';
-        if (show && isRelevant) {{
-          visAll++;
-          if (r.dataset.cat === 'תחבורה') visTr++;
-          if (r.dataset.cat === 'אנרגיה')  visEn++;
-        }}
-      }});
-      document.getElementById('cnt-all').textContent    = visAll;
-      document.getElementById('cnt-transp').textContent = visTr;
-      document.getElementById('cnt-energy').textContent = visEn;
-    }}
+          const matchCat  = activeCategory === 'all'
+            ? true
+            : (activeCategory === 'תחבורה' || activeCategory === 'אנרגיה')
+              ? relevant && cat === activeCategory
+              : true;
+          const matchText = !searchText     || search.includes(searchText);
+          const matchComm = !searchCommittee || comm === searchCommittee;
+          const matchFrom = !searchFrom     || date >= searchFrom;
+          const matchTo   = !searchTo       || date <= searchTo;
 
-    // ── Category filter pills ───────────────────────────────────────────────
-    document.querySelectorAll('.fpill').forEach(btn => {{
-      btn.addEventListener('click', () => {{
-        document.querySelectorAll('.fpill').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        activeFilter = btn.dataset.filter;
-        applyFilters();
-      }});
-    }});
+          const show = matchCat && matchText && matchComm && matchFrom && matchTo;
+          r.style.display = show ? '' : 'none';
+          if (show) {{
+            visTotal++;
+            if (relevant && cat === 'תחבורה') visTr++;
+            if (relevant && cat === 'אנרגיה')  visEn++;
+          }}
+        }});
 
-    // ── Search ───────────────────────────────────────────────────────────────
-    document.getElementById('searchInput').addEventListener('input', e => {{
-      searchTerm = e.target.value.trim();
-      applyFilters();
-    }});
+        // Update counters
+        const countAll   = activeCategory === 'all'      ? visTotal : rows.filter(r => r.style.display !== 'none').length;
+        const countTr    = rows.filter(r => r.style.display !== 'none' && r.dataset.relevant === 'true' && r.dataset.cat === 'תחבורה').length;
+        const countEn    = rows.filter(r => r.style.display !== 'none' && r.dataset.relevant === 'true' && r.dataset.cat === 'אנרגיה').length;
+        const countVis   = rows.filter(r => r.style.display !== 'none').length;
 
-    // ── Date range (feature 1) ────────────────────────────────────────────────
-    document.getElementById('dateFrom').addEventListener('change', e => {{ dateFrom = e.target.value; applyFilters(); }});
-    document.getElementById('dateTo').addEventListener('change',   e => {{ dateTo   = e.target.value; applyFilters(); }});
+        document.getElementById('cnt-all').textContent    = countVis;
+        document.getElementById('cnt-transp').textContent = countTr;
+        document.getElementById('cnt-energy').textContent = countEn;
+        document.getElementById('kpi-total').textContent  = countVis;
+        document.getElementById('kpi-transp').textContent = countTr;
+        document.getElementById('kpi-energy').textContent = countEn;
 
-    // ── Show all toggle (feature 6) ──────────────────────────────────────────
-    function toggleShowAll() {{
-      showAll = !showAll;
-      const btn = document.getElementById('btn-show-all');
-      btn.textContent = showAll ? '👁 הצג רלוונטיים בלבד' : '👁 הצג הכל';
-      btn.classList.toggle('on', showAll);
-      applyFilters();
-    }}
-
-    // ── Column sort (feature 10) ─────────────────────────────────────────────
-    function sortBy(col) {{
-      if (sortCol === col) {{
-        sortDir = sortDir === 'asc' ? 'desc' : 'asc';
-      }} else {{
-        sortCol = col;
-        sortDir = col === 'date' ? 'asc' : 'asc';
+        // No-results row
+        document.getElementById('no-results-row').style.display = countVis === 0 ? '' : 'none';
       }}
-      document.querySelectorAll('th.sortable').forEach(th => {{
-        th.classList.remove('sort-asc', 'sort-desc');
-        if (th.dataset.col === sortCol) th.classList.add('sort-' + sortDir);
-      }});
-      applyFilters();
-    }}
 
-    // ── Row click → modal ────────────────────────────────────────────────────
-    document.querySelectorAll('.session-row').forEach(row => {{
-      row.addEventListener('click', () => openModal(parseInt(row.dataset.idx)));
+      return {{
+        setCategory(cat) {{
+          activeCategory = cat;
+          apply();
+        }},
+        runSearch() {{
+          searchText      = (document.getElementById('adv-text').value || '').trim();
+          searchCommittee = document.getElementById('adv-committee').value || '';
+          searchFrom      = document.getElementById('adv-from').value || '';
+          searchTo        = document.getElementById('adv-to').value   || '';
+          apply();
+        }},
+        resetSearch() {{
+          document.getElementById('adv-text').value      = '';
+          document.getElementById('adv-committee').value = '';
+          document.getElementById('adv-from').value      = '{today_iso}';
+          document.getElementById('adv-to').value        = '{end_iso}';
+          searchText = ''; searchCommittee = ''; searchFrom = ''; searchTo = '';
+          apply();
+        }},
+        sortBy(col) {{
+          sortDir = (sortCol === col && sortDir === 'asc') ? 'desc' : 'asc';
+          sortCol = col;
+          document.querySelectorAll('th.sortable').forEach(th => {{
+            th.classList.remove('sort-asc', 'sort-desc');
+            if (th.dataset.col === sortCol) th.classList.add('sort-' + sortDir);
+          }});
+          apply();
+        }},
+        init() {{
+          document.getElementById('skel-tbody').style.display = 'none';
+          document.getElementById('real-tbody').classList.add('visible');
+          document.getElementById('loading-bar').style.opacity = '0';
+          setTimeout(() => document.getElementById('loading-bar').remove(), 350);
+          apply();
+        }}
+      }};
+    }})();
+
+    // ── Category pills ────────────────────────────────────────────────────────
+    document.querySelectorAll('.fpill[data-filter]').forEach(btn => {{
+      btn.addEventListener('click', () => {{
+        document.querySelectorAll('.fpill[data-filter]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        FilterManager.setCategory(btn.dataset.filter);
+      }});
     }});
 
-    function openModal(idx) {{
+    // ── Advanced search toggle ────────────────────────────────────────────────
+    function toggleAdvSearch() {{
+      const panel = document.getElementById('adv-search');
+      const btn   = document.getElementById('btn-adv-toggle');
+      const open  = panel.classList.toggle('open');
+      btn.classList.toggle('active', open);
+    }}
+
+    // ── Row click → detail modal ──────────────────────────────────────────────
+    document.querySelectorAll('.session-row').forEach(row => {{
+      row.addEventListener('click', () => openDetailModal(parseInt(row.dataset.idx)));
+    }});
+
+    function openDetailModal(idx) {{
       const s = ALL_SESSIONS[idx];
       if (!s) return;
       const cat = s.category || '';
       let badgeHtml = '';
-      if (cat === 'תחבורה') badgeHtml = '<span class="badge badge-transport">🚗 ' + cat + '</span>';
-      else if (cat === 'אנרגיה') badgeHtml = '<span class="badge badge-energy">⚡ ' + cat + '</span>';
+      if      (cat === 'תחבורה') badgeHtml = '<span class="badge badge-transport">🚗 ' + cat + '</span>';
+      else if (cat === 'אנרגיה') badgeHtml = '<span class="badge badge-energy">⚡ '   + cat + '</span>';
       document.getElementById('m-badge').innerHTML       = badgeHtml;
       document.getElementById('m-title').textContent     = s.title     || '';
       document.getElementById('m-committee').textContent = s.committee || '';
       document.getElementById('m-date').textContent      = s.datetime  || '';
       document.getElementById('m-link').href             = s.link      || '#';
       const relEl = document.getElementById('m-relevance');
-      if (s.relevance && s.relevance !== 'Pending AI Analysis') {{
-        relEl.textContent  = s.relevance;
-        relEl.style.display = 'block';
-      }} else {{
-        relEl.style.display = 'none';
-      }}
-      // Protocol link (feature 7)
+      if (s.relevance) {{ relEl.textContent = s.relevance; relEl.style.display = 'block'; }}
+      else               {{ relEl.style.display = 'none'; }}
       const protoEl = document.getElementById('m-proto');
-      if (s.protocol_url) {{
-        protoEl.href = s.protocol_url;
-        protoEl.style.display = '';
-      }} else {{
-        protoEl.style.display = 'none';
-      }}
+      if (s.protocol_url) {{ protoEl.href = s.protocol_url; protoEl.style.display = ''; }}
+      else                  {{ protoEl.style.display = 'none'; }}
       document.getElementById('overlay').classList.add('open');
       document.body.style.overflow = 'hidden';
     }}
 
-    function closeModal() {{
+    function closeDetailModal() {{
       document.getElementById('overlay').classList.remove('open');
       document.body.style.overflow = '';
     }}
 
-    document.addEventListener('keydown', e => {{ if (e.key === 'Escape') closeModal(); }});
+    // ── History modal ─────────────────────────────────────────────────────────
+    function openHistoryModal() {{
+      document.getElementById('history-overlay').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }}
+    function closeHistoryModal() {{
+      document.getElementById('history-overlay').classList.remove('open');
+      document.body.style.overflow = '';
+    }}
+
+    // ── Keyboard ──────────────────────────────────────────────────────────────
+    document.addEventListener('keydown', e => {{
+      if (e.key === 'Escape') {{ closeDetailModal(); closeHistoryModal(); }}
+    }});
+
+    // ── Boot ──────────────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => FilterManager.init());
   </script>
 
 </body>
