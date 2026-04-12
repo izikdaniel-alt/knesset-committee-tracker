@@ -1170,7 +1170,7 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
         'LOCATION:' + location,
         'UID:' + uid,
         'END:VEVENT', 'END:VCALENDAR'
-      ].join('\r\n');
+      ].join('\\r\\n');
       const blob = new Blob([ics], {{type:'text/calendar;charset=utf-8'}});
       const a = document.createElement('a');
       a.href     = URL.createObjectURL(blob);
