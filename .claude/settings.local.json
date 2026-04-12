@@ -17,7 +17,13 @@
       "Bash(git rm:*)",
       "Bash(git pull:*)",
       "Bash(PYTHONIOENCODING=utf-8 python knesset_monitor.py --preview)",
-      "Bash(pip install:*)"
+      "Bash(pip install:*)",
+      "Bash(git checkout:*)",
+      "Bash(git rebase:*)",
+      "Bash(GIT_EDITOR=true git rebase --continue)",
+      "Bash(git fetch:*)",
+      "Bash(git merge:*)",
+      "Bash(gh repo:*)"
     ]
   }
 }
