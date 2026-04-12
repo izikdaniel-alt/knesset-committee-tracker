@@ -13,7 +13,7 @@ import re
 import smtplib
 import sys
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from urllib.parse import quote as url_quote
 from zoneinfo import ZoneInfo
 from email.mime.multipart import MIMEMultipart
@@ -215,17 +215,21 @@ def fetch_sessions() -> list[dict]:
         except (ValueError, TypeError):
             link = "#"
 
-        protocol_url = item.get("SessionUrl") or ""
         date_iso = dt.strftime("%Y-%m-%d") if dt else ""
+        # Knesset /Date(ms)/ encodes Israel local time; attach ISRAEL_TZ then convert to UTC for ICS
+        datetime_utc = (
+            dt.replace(tzinfo=ISRAEL_TZ).astimezone(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+            if dt else ""
+        )
 
         sessions.append({
-            "title": title,
-            "committee": committee_name,
-            "datetime": dt_str,
-            "date_iso": date_iso,
-            "link": link,
-            "protocol_url": protocol_url,
-            "session_id": session_id,
+            "title":        title,
+            "committee":    committee_name,
+            "datetime":     dt_str,
+            "date_iso":     date_iso,
+            "datetime_utc": datetime_utc,
+            "link":         link,
+            "session_id":   session_id,
         })
 
     log.info("Fetched %d sessions.", len(sessions))
@@ -357,16 +361,10 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
             cat_cls   = ("badge-transport" if raw_cat == "תחבורה"
                          else "badge-energy" if raw_cat == "אנרגיה"
                          else "badge-default")
-            search_str   = _html.escape(f"{s.get('title','')} {s.get('committee','')} {raw_cat}")
-            link         = _html.escape(s.get("link") or "#")
-            protocol_url = _html.escape(s.get("protocol_url") or "")
-            rel_str      = "true" if is_rel else "false"
-            cat_display  = cat if cat else "—"
-            proto_btn    = (
-                f'<a href="{protocol_url}" target="_blank" rel="noopener" '
-                f'class="btn-protocol" onclick="event.stopPropagation()">פרוטוקול</a>'
-                if protocol_url else ""
-            )
+            search_str  = _html.escape(f"{s.get('title','')} {s.get('committee','')} {raw_cat}")
+            link        = _html.escape(s.get("link") or "#")
+            rel_str     = "true" if is_rel else "false"
+            cat_display = cat if cat else "—"
             rows_html += (
                 f'<tr class="session-row" data-idx="{idx}" data-cat="{cat}"'
                 f' data-committee="{committee}" data-search="{search_str}"'
@@ -378,7 +376,7 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
                 f'<td class="td-action">'
                 f'<a href="{link}" target="_blank" rel="noopener" class="btn-open"'
                 f' onclick="event.stopPropagation()">פתח ←</a>'
-                f'{proto_btn}'
+                f'<button class="btn-cal" onclick="addToCalendar({idx});event.stopPropagation()">📅 יומן</button>'
                 f'</td></tr>\n'
             )
     else:
@@ -676,13 +674,13 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
       transition: background .15s; white-space: nowrap;
     }}
     .btn-open:hover {{ background: var(--blue-dk); }}
-    .btn-protocol {{
+    .btn-cal {{
       display: inline-flex; align-items: center; margin-right: 6px;
       background: transparent; color: var(--txt-2); border: 1px solid var(--border);
       border-radius: 7px; padding: 5px 12px; font-size: .75rem; font-weight: 500;
-      font-family: 'Heebo', sans-serif; text-decoration: none; transition: all .15s; white-space: nowrap;
+      font-family: 'Heebo', sans-serif; cursor: pointer; transition: all .15s; white-space: nowrap;
     }}
-    .btn-protocol:hover {{ border-color: var(--blue); color: var(--blue); background: var(--blue-lt); }}
+    .btn-cal:hover {{ border-color: var(--emerald); color: var(--emerald); background: var(--emerald-lt); }}
 
     /* No results */
     .no-results {{ text-align: center; padding: 56px 24px !important; color: var(--txt-3); }}
@@ -736,13 +734,13 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
       transition: background .15s;
     }}
     .btn-modal-open:hover {{ background: var(--blue-dk); }}
-    .btn-modal-proto {{
+    .btn-modal-cal {{
       flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
       background: transparent; color: var(--txt-2); border: 1px solid var(--border);
       border-radius: 10px; padding: 11px 18px; font-size: .88rem; font-weight: 600;
-      font-family: 'Heebo', sans-serif; text-decoration: none; transition: all .15s;
+      font-family: 'Heebo', sans-serif; cursor: pointer; transition: all .15s;
     }}
-    .btn-modal-proto:hover {{ border-color: var(--blue); color: var(--blue); background: var(--blue-lt); }}
+    .btn-modal-cal:hover {{ border-color: var(--emerald); color: var(--emerald); background: var(--emerald-lt); }}
 
     /* History modal */
     .modal-history {{ max-width: 640px; }}
@@ -945,8 +943,8 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
         </div>
         <div class="modal-relevance" id="m-relevance" style="display:none"></div>
         <div class="modal-actions">
-          <a class="btn-modal-open"  id="m-link"  target="_blank" rel="noopener">פתח בכנסת ←</a>
-          <a class="btn-modal-proto" id="m-proto" target="_blank" rel="noopener" style="display:none">📄 פרוטוקול</a>
+          <a class="btn-modal-open" id="m-link" target="_blank" rel="noopener">פתח בכנסת ←</a>
+          <button class="btn-modal-cal" id="m-cal" onclick="addToCalendar(currentModalIdx)">📅 הוסף ליומן</button>
         </div>
       </div>
     </div>
@@ -1109,6 +1107,8 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
     }}
 
     // ── Row click → detail modal ──────────────────────────────────────────────
+    let currentModalIdx = -1;
+
     document.querySelectorAll('.session-row').forEach(row => {{
       row.addEventListener('click', () => openDetailModal(parseInt(row.dataset.idx)));
     }});
@@ -1116,6 +1116,7 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
     function openDetailModal(idx) {{
       const s = ALL_SESSIONS[idx];
       if (!s) return;
+      currentModalIdx = idx;
       const cat = s.category || '';
       let badgeHtml = '';
       if      (cat === 'תחבורה') badgeHtml = '<span class="badge badge-transport">🚗 ' + cat + '</span>';
@@ -1128,9 +1129,6 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
       const relEl = document.getElementById('m-relevance');
       if (s.relevance) {{ relEl.textContent = s.relevance; relEl.style.display = 'block'; }}
       else               {{ relEl.style.display = 'none'; }}
-      const protoEl = document.getElementById('m-proto');
-      if (s.protocol_url) {{ protoEl.href = s.protocol_url; protoEl.style.display = ''; }}
-      else                  {{ protoEl.style.display = 'none'; }}
       document.getElementById('overlay').classList.add('open');
       document.body.style.overflow = 'hidden';
     }}
@@ -1138,6 +1136,48 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
     function closeDetailModal() {{
       document.getElementById('overlay').classList.remove('open');
       document.body.style.overflow = '';
+      currentModalIdx = -1;
+    }}
+
+    // ── Add to Calendar (.ics download) ──────────────────────────────────────
+    function addToCalendar(idx) {{
+      const s = ALL_SESSIONS[idx];
+      if (!s) return;
+      const utc = s.datetime_utc || '';
+      if (!utc) {{ alert('תאריך לא זמין לאירוע זה'); return; }}
+      // Parse YYYYMMDDTHHmmSSZ
+      const yr = parseInt(utc.substr(0,4)), mo = parseInt(utc.substr(4,2))-1,
+            dy = parseInt(utc.substr(6,2)), hr = parseInt(utc.substr(9,2)),
+            mn = parseInt(utc.substr(11,2));
+      const t0 = new Date(Date.UTC(yr, mo, dy, hr, mn, 0));
+      const t1 = new Date(t0.getTime() + 7200000); // +2 hours
+      function icsDate(d) {{
+        return d.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+      }}
+      const summary  = '[ועדת ' + (s.committee||'') + '] - ' + (s.title||'');
+      const desc     = (s.title||'') + ' | קישור: ' + (s.link||'');
+      const location = 'כנסת ישראל\\, ירושלים';
+      const uid      = 'knesset-' + (s.session_id||idx) + '@knesset-monitor';
+      const ics = [
+        'BEGIN:VCALENDAR', 'VERSION:2.0',
+        'PRODID:-//Knesset Monitor//IL',
+        'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
+        'BEGIN:VEVENT',
+        'DTSTART:' + icsDate(t0),
+        'DTEND:'   + icsDate(t1),
+        'SUMMARY:' + summary,
+        'DESCRIPTION:' + desc,
+        'LOCATION:' + location,
+        'UID:' + uid,
+        'END:VEVENT', 'END:VCALENDAR'
+      ].join('\r\n');
+      const blob = new Blob([ics], {{type:'text/calendar;charset=utf-8'}});
+      const a = document.createElement('a');
+      a.href     = URL.createObjectURL(blob);
+      a.download = 'knesset-' + (s.date_iso||'session').replace(/-/g,'') + '.ics';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {{ URL.revokeObjectURL(a.href); a.remove(); }}, 1000);
     }}
 
     // ── History modal ─────────────────────────────────────────────────────────
