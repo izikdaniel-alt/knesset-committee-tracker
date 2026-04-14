@@ -652,11 +652,11 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
     .session-row[data-relevant="false"] td {{ opacity: .58; }}
     .session-row[data-relevant="false"]:hover td {{ opacity: .82; background: #FAFAFA; }}
     /* Column widths — subject gets the most space */
-    col.col-subject  {{ width: 45%; }}
-    col.col-committee {{ width: 19%; }}
-    col.col-date     {{ width: 14%; }}
-    col.col-category {{ width: 9%; }}
-    col.col-action   {{ width: 13%; }}
+    col.col-subject   {{ width: 38%; }}
+    col.col-committee {{ width: 16%; }}
+    col.col-date      {{ width: 21%; }}
+    col.col-category  {{ width: 10%; }}
+    col.col-action    {{ width: 15%; }}
     .td-title {{
       font-size: .88rem; font-weight: 600; color: var(--txt); line-height: 1.5;
       display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
