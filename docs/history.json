@@ -1,5 +1,112 @@
 [
   {
+    "date": "14/04/2026 13:11",
+    "date_iso": "2026-04-14",
+    "relevant_sessions": [
+      {
+        "title": "הצעת תקנות כבישי אגרה (מנהרות הכרמל)(פיצוי והחזר הוצאות)(תיקון), התשפ\"ה-2025 ",
+        "committee": "ועדת הכלכלה",
+        "datetime": "16/04/2026 12:30",
+        "link": "https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2242157",
+        "category": "תחבורה",
+        "relevance": "הדיון עוסק בתקנות הקשורות לכבישי אגרה ותשתיות דרכים."
+      },
+      {
+        "title": "היעדר חלופות תחבורה ציבורית יעילה לקראת כניסה לתוקף של אגרת גודש",
+        "committee": "ועדת הכלכלה",
+        "datetime": "16/04/2026 14:00",
+        "link": "https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2242162",
+        "category": "תחבורה",
+        "relevance": "הדיון עוסק בחלופות תחבורה ציבורית ואגרת גודש."
+      },
+      {
+        "title": "חיבור גז טבעי באיו\"ש",
+        "committee": "הוועדה לפיקוח על הקרן לאזרחי ישראל",
+        "datetime": "20/04/2026 11:00",
+        "link": "https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2241963",
+        "category": "אנרגיה",
+        "relevance": "הדיון מתמקד בחיבור ותשתיות גז טבעי."
+      },
+      {
+        "title": "פרק ח' (רשויות תחבורה ציבורית (רשויות מטרופוליניות ורשות ארצית)) מתוך הצעת חוק התוכנית הכלכלית (תיקוני חקיקה ליישום המדיניות הכלכלית לשנת התקציב 2025), התשפ\"ה-2024 [פוצל לפי סעיף 84(ב) לתקנון] ",
+        "committee": "ועדת הכלכלה",
+        "datetime": "04/05/2026 09:00",
+        "link": "https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2242165",
+        "category": "תחבורה",
+        "relevance": "הדיון עוסק ברשויות האחראיות על התחבורה הציבורית ובמדיניות כלכלית הקשורה אליה."
+      },
+      {
+        "title": "הפחתת אגרה בעד רשיון להפעלת מונית בעקבות הרפורמה בענף מוניות השירות",
+        "committee": "ועדת הכלכלה",
+        "datetime": "04/05/2026 11:00",
+        "link": "https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2242375",
+        "category": "תחבורה",
+        "relevance": "הדיון עוסק באגרות ורישיונות להפעלת מוניות ורפורמה בענף זה."
+      },
+      {
+        "title": "מתן מענה לנוסעים בטיסות שבוטלו עקב \"מבצע שאגת האר\"י\" והשלכות המבצע על ענף התעופה האזרחית",
+        "committee": "ועדת הכלכלה",
+        "datetime": "04/05/2026 11:30",
+        "link": "https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2242370",
+        "category": "תחבורה",
+        "relevance": "הדיון דן בהשלכות על ענף התעופה האזרחית וטיסות שבוטלו."
+      },
+      {
+        "title": "הצעה לדיון מהיר בנושא: השפעת רפורמת \"צדק תחבורתי\" על היקף השימוש והנטל הכלכלי בתחבורה הציבורית",
+        "committee": "ועדת הכלכלה",
+        "datetime": "04/05/2026 13:30",
+        "link": "https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2242160",
+        "category": "תחבורה",
+        "relevance": "הדיון בוחן את השפעת רפורמה על השימוש והנטל הכלכלי בתחבורה הציבורית."
+      }
+    ],
+    "total_scanned": 42,
+    "all_session_ids": [
+      2242341,
+      2242316,
+      2242318,
+      2242344,
+      2242278,
+      2242348,
+      2242343,
+      2242353,
+      2242159,
+      2242383,
+      2242157,
+      2242162,
+      2242359,
+      2242400,
+      2242107,
+      2242360,
+      2242365,
+      2242350,
+      2242368,
+      2241903,
+      2242411,
+      2241908,
+      2232459,
+      2241963,
+      2242108,
+      2241203,
+      2242404,
+      2242425,
+      2242419,
+      2242165,
+      2241494,
+      2241578,
+      2242375,
+      2242370,
+      2242160,
+      2241168,
+      2242384,
+      2242361,
+      2242409,
+      2241279,
+      2242088,
+      2242408
+    ]
+  },
+  {
     "date": "12/04/2026 23:03",
     "date_iso": "2026-04-12",
     "relevant_sessions": [

@@ -313,7 +313,8 @@ def _analyse_chunk(client: genai.Client, sessions: list[dict]) -> dict:
 # 3. Generate HTML Dashboard
 # ---------------------------------------------------------------------------
 
-def generate_dashboard(results: dict, all_sessions: list[dict], history: list[dict], generated_at: datetime) -> str:
+def generate_dashboard(results: dict, all_sessions: list[dict], history: list[dict], generated_at: datetime, new_ids: set | None = None) -> str:
+    new_ids = new_ids or set()
     relevant_sessions = results.get("relevant_sessions", [])
     total_relevant    = len(relevant_sessions)
     total_scanned     = results.get("total_scanned", 0)
@@ -365,11 +366,13 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
             link        = _html.escape(s.get("link") or "#")
             rel_str     = "true" if is_rel else "false"
             cat_display = cat if cat else "—"
+            is_new      = s.get("session_id") in new_ids
+            new_badge   = '<span class="badge-new">✨ חדש</span>' if is_new else ""
             rows_html += (
                 f'<tr class="session-row" data-idx="{idx}" data-cat="{cat}"'
                 f' data-committee="{committee}" data-search="{search_str}"'
                 f' data-date="{date_iso}" data-relevant="{rel_str}">'
-                f'<td class="td-title-cell"><span class="td-title">{title}</span></td>'
+                f'<td class="td-title-cell">{new_badge}<span class="td-title">{title}</span></td>'
                 f'<td data-sort="{committee}"><span class="badge badge-committee">{committee}</span></td>'
                 f'<td class="td-date" data-sort="{date_iso}">{dt}</td>'
                 f'<td><span class="badge {cat_cls}">{cat_display}</span></td>'
@@ -631,30 +634,41 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
 
     /* Table */
     .tbl-wrap {{ overflow-x: auto; }}
-    table {{ width: 100%; border-collapse: collapse; min-width: 580px; }}
+    table {{ width: 100%; border-collapse: collapse; min-width: 640px; table-layout: fixed; }}
     thead tr {{ background: #FAFBFC; }}
     th {{
-      padding: 11px 20px; font-size: .7rem; font-weight: 700; color: var(--txt-3);
+      padding: 11px 14px; font-size: .7rem; font-weight: 700; color: var(--txt-3);
       text-align: right; border-bottom: 1px solid var(--border);
-      white-space: nowrap; letter-spacing: .04em; text-transform: uppercase;
+      white-space: nowrap; letter-spacing: .04em; text-transform: uppercase; overflow: hidden;
     }}
     th.sortable {{ cursor: pointer; user-select: none; }}
     th.sortable:hover {{ color: var(--blue); }}
     th.sort-asc  .sort-arrow::after {{ content: ' ▲'; font-size: .6rem; }}
     th.sort-desc .sort-arrow::after {{ content: ' ▼'; font-size: .6rem; }}
-    td {{ padding: 15px 20px; border-bottom: 1px solid var(--border-lt); vertical-align: middle; }}
+    td {{ padding: 13px 14px; border-bottom: 1px solid var(--border-lt); vertical-align: middle; overflow: hidden; }}
     .session-row {{ cursor: pointer; transition: background .1s; }}
     .session-row:last-child td {{ border-bottom: none; }}
     .session-row:hover td {{ background: #F8FAFF; }}
     .session-row[data-relevant="false"] td {{ opacity: .58; }}
     .session-row[data-relevant="false"]:hover td {{ opacity: .82; background: #FAFAFA; }}
-    .td-title-cell {{ max-width: 380px; }}
+    /* Column widths — subject gets the most space */
+    col.col-subject  {{ width: 45%; }}
+    col.col-committee {{ width: 19%; }}
+    col.col-date     {{ width: 14%; }}
+    col.col-category {{ width: 9%; }}
+    col.col-action   {{ width: 13%; }}
     .td-title {{
-      font-size: .9rem; font-weight: 600; color: var(--txt); line-height: 1.5;
+      font-size: .88rem; font-weight: 600; color: var(--txt); line-height: 1.5;
       display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
     }}
-    .td-date   {{ font-size: .82rem; color: var(--txt-2); white-space: nowrap; font-weight: 500; }}
+    .td-date {{ font-size: .82rem; color: var(--txt-2); white-space: nowrap; font-weight: 500; }}
     .td-action {{ text-align: center; white-space: nowrap; }}
+    .badge-new {{
+      display: inline-block; background: #ECFDF5; color: #059669;
+      border: 1px solid #6EE7B7; border-radius: 20px;
+      font-size: .67rem; font-weight: 700; padding: 1px 8px;
+      margin-bottom: 3px; letter-spacing: .02em; white-space: nowrap;
+    }}
     #no-results-row {{ display: none; }}
 
     /* Badges */
@@ -786,7 +800,7 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
       .toolbar {{ flex-direction: column; align-items: stretch; gap: 8px; }}
       .adv-search-inner {{ flex-direction: column; }}
       .adv-date-pair {{ flex-wrap: wrap; }}
-      th, td {{ padding: 11px 12px; }} .td-title-cell {{ max-width: 200px; }}
+      th, td {{ padding: 10px 10px; }} col.col-committee {{ width: 0; display: none; }}
       .modal {{ border-radius: 14px; }} .btn-hdr-blue span {{ display: none; }}
     }}
     @media (max-width: 480px) {{
@@ -827,7 +841,7 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
         <div>
           <div class="kpi-val" id="kpi-total">{total_scanned}</div>
           <div class="kpi-lbl">דיונים מוצגים</div>
-          <div class="kpi-hint">מתוך {total_scanned} שנסרקו</div>
+          <div class="kpi-hint">90 הימים הקרובים</div>
         </div>
       </div>
       <div class="kpi kpi-transp">
@@ -899,6 +913,13 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
       <!-- Table -->
       <div class="tbl-wrap">
         <table>
+          <colgroup>
+            <col class="col-subject">
+            <col class="col-committee">
+            <col class="col-date">
+            <col class="col-category">
+            <col class="col-action">
+          </colgroup>
           <thead>
             <tr>
               <th class="sortable" data-col="title" onclick="FilterManager.sortBy('title')">
@@ -1204,8 +1225,8 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
     return dashboard_html
 
 
-def write_dashboard(results: dict, all_sessions: list[dict], history: list[dict], generated_at: datetime) -> None:
-    dashboard_html = generate_dashboard(results, all_sessions, history, generated_at)
+def write_dashboard(results: dict, all_sessions: list[dict], history: list[dict], generated_at: datetime, new_ids: set | None = None) -> None:
+    dashboard_html = generate_dashboard(results, all_sessions, history, generated_at, new_ids or set())
     docs_dir = Path("docs")
     docs_dir.mkdir(exist_ok=True)
     out = docs_dir / "index.html"
@@ -1226,12 +1247,14 @@ def load_history() -> list[dict]:
     return []
 
 
-def save_history(history: list[dict], results: dict, generated_at: datetime) -> list[dict]:
+def save_history(history: list[dict], results: dict, all_sessions: list[dict], generated_at: datetime) -> list[dict]:
     entry = {
         "date": generated_at.strftime("%d/%m/%Y %H:%M"),
         "date_iso": generated_at.strftime("%Y-%m-%d"),
         "relevant_sessions": results.get("relevant_sessions", []),
         "total_scanned": results.get("total_scanned", 0),
+        # All session IDs seen this run — used by next run to detect new sessions
+        "all_session_ids": [s["session_id"] for s in all_sessions if s.get("session_id")],
     }
     history = [entry] + [h for h in history if h.get("date_iso") != entry["date_iso"]]
     history = history[:MAX_HISTORY_RUNS]
@@ -1438,8 +1461,12 @@ def main() -> None:
         print_preview(results, generated_at)
     else:
         history = load_history()
-        history = save_history(history, results, generated_at)
-        write_dashboard(results, sessions, history, generated_at)
+        # IDs seen in the previous run — anything not in this set is "new today"
+        prev_ids = set(history[0].get("all_session_ids", [])) if history else set()
+        new_ids  = {s["session_id"] for s in sessions if s.get("session_id")} - prev_ids
+        log.info("New sessions this run: %d", len(new_ids))
+        history = save_history(history, results, sessions, generated_at)
+        write_dashboard(results, sessions, history, generated_at, new_ids)
         send_email(results, generated_at)
         log.info("Done.")
 
