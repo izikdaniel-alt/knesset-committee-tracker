@@ -800,8 +800,48 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
       .toolbar {{ flex-direction: column; align-items: stretch; gap: 8px; }}
       .adv-search-inner {{ flex-direction: column; }}
       .adv-date-pair {{ flex-wrap: wrap; }}
-      th, td {{ padding: 10px 10px; }} col.col-committee {{ width: 0; display: none; }}
       .modal {{ border-radius: 14px; }} .btn-hdr-blue span {{ display: none; }}
+    }}
+    @media (max-width: 600px) {{
+      /* ── Card layout: replace horizontal-scroll table with stacked cards ── */
+      .tbl-wrap table  {{ display: block; min-width: 0; }}
+      .tbl-wrap colgroup, .tbl-wrap thead {{ display: none; }}
+      .tbl-wrap tbody  {{ display: flex; flex-direction: column; gap: 10px; padding: 12px; }}
+      tr.session-row {{
+        display: flex; flex-direction: column;
+        border: 1px solid var(--border); border-radius: 12px;
+        overflow: hidden; cursor: pointer; background: var(--surface);
+        transition: box-shadow .15s;
+      }}
+      tr.session-row:hover {{ box-shadow: 0 4px 14px rgba(0,0,0,.1); }}
+      tr.session-row[data-relevant="false"] {{ opacity: .65; }}
+      tr.session-row[data-relevant="false"] td {{ opacity: 1 !important; }}
+      tr.session-row:hover td {{ background: transparent !important; }}
+      tr.session-row td {{ display: block; border: none; overflow: visible; padding: 0; }}
+      /* Committee name — top band */
+      tr.session-row td:nth-child(2) {{
+        order: 1; padding: 9px 14px;
+        background: var(--border-lt); border-bottom: 1px solid var(--border); font-size: .78rem;
+      }}
+      /* Title */
+      tr.session-row td.td-title-cell {{ order: 2; padding: 12px 14px 6px; }}
+      tr.session-row .td-title {{ -webkit-line-clamp: 3; font-size: .9rem; }}
+      /* Date */
+      tr.session-row td.td-date {{ order: 3; padding: 4px 14px 8px; white-space: normal !important; }}
+      /* Category badge */
+      tr.session-row td:nth-child(4) {{ order: 4; padding: 0 14px 10px; }}
+      /* Actions */
+      tr.session-row td.td-action {{
+        order: 5; padding: 10px 14px;
+        display: flex; gap: 8px;
+        border-top: 1px solid var(--border-lt); background: var(--bg);
+      }}
+      tr.session-row td.td-action .btn-open,
+      tr.session-row td.td-action .btn-cal {{ flex: 1; justify-content: center; margin: 0; }}
+      /* Skeleton cards */
+      tr.skel-row {{ display: block; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }}
+      tr.skel-row td:not(:first-child) {{ display: none; }}
+      tr.skel-row td {{ display: block; padding: 20px 14px; }}
     }}
     @media (max-width: 480px) {{
       .kpi-hint {{ display: none; }} .kpi-ico {{ width: 36px; height: 36px; font-size: 1rem; }}
