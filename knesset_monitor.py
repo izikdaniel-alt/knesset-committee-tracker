@@ -1175,9 +1175,7 @@ def generate_dashboard(results: dict, all_sessions: list[dict], history: list[di
       function icsDate(d) {{
         return d.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
       }}
-      const cmte     = (s.committee||'');
-      const cmteLabel = cmte.startsWith('ועדת') ? cmte : ('ועדת ' + cmte);
-      const summary  = cmteLabel + ' - ' + (s.title||'');
+      const summary  = (s.committee||'') + ' - ' + (s.title||'');
       const desc     = (s.title||'') + ' | קישור: ' + (s.link||'');
       const location = 'כנסת ישראל\\, ירושלים';
       const uid      = 'knesset-' + (s.session_id||idx) + '@knesset-monitor';
