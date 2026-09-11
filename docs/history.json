@@ -1,5 +1,12 @@
 [
   {
+    "date": "11/09/2026 11:07",
+    "date_iso": "2026-09-11",
+    "relevant_sessions": [],
+    "total_scanned": 0,
+    "all_session_ids": []
+  },
+  {
     "date": "10/09/2026 11:12",
     "date_iso": "2026-09-10",
     "relevant_sessions": [
@@ -775,37 +782,6 @@
     ],
     "total_scanned": 13,
     "all_session_ids": [
-      2245331,
-      2245332,
-      2245349,
-      2245348,
-      2245312,
-      2245234,
-      2245341,
-      2245328,
-      2245345,
-      2245344,
-      2245354,
-      2245356,
-      2245359
-    ]
-  },
-  {
-    "date": "12/08/2026 08:07",
-    "date_iso": "2026-08-12",
-    "relevant_sessions": [
-      {
-        "title": "הצעת צו הפרות תעבורה מנהליות (שינוי התוספת הראשונה לחוק)(מס' 2), התשפ\"ו-2026",
-        "committee": "ועדת הכלכלה",
-        "datetime": "13/08/2026 13:30",
-        "link": "https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2245349",
-        "category": "תחבורה",
-        "relevance": "הדיון עוסק בהפרות תעבורה מנהליות, נושא הרלוונטי לתחום ה-mobility."
-      }
-    ],
-    "total_scanned": 14,
-    "all_session_ids": [
-      2245342,
       2245331,
       2245332,
       2245349,
