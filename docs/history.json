@@ -1,5 +1,28 @@
 [
   {
+    "date": "12/09/2026 10:58",
+    "date_iso": "2026-09-12",
+    "relevant_sessions": [
+      {
+        "title": "אסדרה של מתקני התפלת מי ים ופיקוח עליהם, דוח שנתי 2024",
+        "committee": "הוועדה לענייני ביקורת המדינה",
+        "datetime": "17/09/2026 12:00",
+        "link": "https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2245390",
+        "category": "אנרגיה",
+        "relevance": "מתקני התפלה צורכים כמויות משמעותיות של אנרגיה ומשפיעים ישירות על משק החשמל ותשתיות האנרגיה."
+      }
+    ],
+    "total_scanned": 6,
+    "all_session_ids": [
+      2245397,
+      2245385,
+      2245384,
+      2245389,
+      2245390,
+      2245396
+    ]
+  },
+  {
     "date": "11/09/2026 11:07",
     "date_iso": "2026-09-11",
     "relevant_sessions": [],
@@ -765,36 +788,6 @@
       2245363,
       2245359,
       2245366
-    ]
-  },
-  {
-    "date": "13/08/2026 08:09",
-    "date_iso": "2026-08-13",
-    "relevant_sessions": [
-      {
-        "title": "הצעת צו הפרות תעבורה מנהליות (שינוי התוספת הראשונה לחוק)(מס' 2), התשפ\"ו-2026",
-        "committee": "ועדת הכלכלה",
-        "datetime": "13/08/2026 13:30",
-        "link": "https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2245349",
-        "category": "תחבורה",
-        "relevance": "הדיון עוסק ב'הפרות תעבורה', הנושא קשור ישירות לתחום ה-mobility."
-      }
-    ],
-    "total_scanned": 13,
-    "all_session_ids": [
-      2245331,
-      2245332,
-      2245349,
-      2245348,
-      2245312,
-      2245234,
-      2245341,
-      2245328,
-      2245345,
-      2245344,
-      2245354,
-      2245356,
-      2245359
     ]
   }
 ]
