@@ -1,5 +1,28 @@
 [
   {
+    "date": "13/09/2026 11:23",
+    "date_iso": "2026-09-13",
+    "relevant_sessions": [
+      {
+        "title": "אסדרה של מתקני התפלת מי ים ופיקוח עליהם, דוח שנתי 2024",
+        "committee": "הוועדה לענייני ביקורת המדינה",
+        "datetime": "17/09/2026 12:00",
+        "link": "https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2245390",
+        "category": "אנרגיה",
+        "relevance": "דיון באסדרה ופיקוח על מתקני התפלה, שהם צרכני אנרגיה משמעותיים וקריטיים לתשתיות האנרגיה."
+      }
+    ],
+    "total_scanned": 6,
+    "all_session_ids": [
+      2245397,
+      2245385,
+      2245384,
+      2245389,
+      2245390,
+      2245396
+    ]
+  },
+  {
     "date": "12/09/2026 10:58",
     "date_iso": "2026-09-12",
     "relevant_sessions": [
@@ -741,36 +764,6 @@
         "link": "https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2245366",
         "category": "תחבורה",
         "relevance": "הדיון עוסק בבקשת שרת התחבורה לקידום מיזמים, המעיד על ענייני תחבורה ותשתיות."
-      }
-    ],
-    "total_scanned": 13,
-    "all_session_ids": [
-      2245312,
-      2245234,
-      2245341,
-      2245328,
-      2245345,
-      2245346,
-      2245344,
-      2245354,
-      2245347,
-      2245356,
-      2245363,
-      2245359,
-      2245366
-    ]
-  },
-  {
-    "date": "14/08/2026 08:07",
-    "date_iso": "2026-08-14",
-    "relevant_sessions": [
-      {
-        "title": "בקשת שרת התחבורה לקידום שני מיזמים דחופים בתחומי מקרקעי ביה\"ס החקלאי מקווה ישראל",
-        "committee": "ועדה משותפת של ועדת החינוך, התרבות והספורט וועדת הפנים והגנת הסביבה לפי חוק בית הספר החקלאי מקווה ישראל, תשל\"ו-1976",
-        "datetime": "07/09/2026 12:30",
-        "link": "https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2245366",
-        "category": "תחבורה",
-        "relevance": "הדיון עוסק בבקשת שרת התחבורה לקידום מיזמים, וקשור ישירות לתחום התחבורה."
       }
     ],
     "total_scanned": 13,
