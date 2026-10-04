@@ -1,5 +1,15 @@
 [
   {
+    "date": "04/10/2026 12:53",
+    "date_iso": "2026-10-04",
+    "relevant_sessions": [],
+    "total_scanned": 2,
+    "all_session_ids": [
+      2245423,
+      2245422
+    ]
+  },
+  {
     "date": "03/10/2026 12:14",
     "date_iso": "2026-10-03",
     "relevant_sessions": [],
@@ -401,32 +411,6 @@
         "link": "https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2245366",
         "category": "תחבורה",
         "relevance": "הדיון עוסק בבקשת שרת התחבורה לקידום מיזמים, מה שמצביע על קשר ישיר לתחומי תחבורה ופיתוח תשתיות."
-      }
-    ],
-    "total_scanned": 9,
-    "all_session_ids": [
-      2245346,
-      2245344,
-      2245354,
-      2245347,
-      2245356,
-      2245363,
-      2245359,
-      2245366,
-      2245376
-    ]
-  },
-  {
-    "date": "04/09/2026 11:02",
-    "date_iso": "2026-09-04",
-    "relevant_sessions": [
-      {
-        "title": "בקשת שרת התחבורה לקידום שני מיזמים דחופים בתחומי מקרקעי ביה\"ס החקלאי מקווה ישראל",
-        "committee": "ועדה משותפת של ועדת החינוך, התרבות והספורט וועדת הפנים והגנת הסביבה לפי חוק בית הספר החקלאי מקווה ישראל, תשל\"ו-1976",
-        "datetime": "07/09/2026 12:30",
-        "link": "https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2245366",
-        "category": "תחבורה",
-        "relevance": "הדיון עוסק בבקשת שרת התחבורה לקידום מיזמים, הקשורים ישירות לתחום התחבורה וה-mobility."
       }
     ],
     "total_scanned": 9,
