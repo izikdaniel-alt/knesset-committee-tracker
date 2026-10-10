@@ -1,5 +1,24 @@
 [
   {
+    "date": "10/10/2026 12:56",
+    "date_iso": "2026-10-10",
+    "relevant_sessions": [],
+    "total_scanned": 11,
+    "all_session_ids": [
+      2245435,
+      2245434,
+      2245437,
+      2245438,
+      2245441,
+      2245439,
+      2245426,
+      2245429,
+      2245447,
+      2245450,
+      2245448
+    ]
+  },
+  {
     "date": "09/10/2026 13:40",
     "date_iso": "2026-10-09",
     "relevant_sessions": [],
@@ -405,27 +424,5 @@
     "relevant_sessions": [],
     "total_scanned": 0,
     "all_session_ids": []
-  },
-  {
-    "date": "10/09/2026 11:12",
-    "date_iso": "2026-09-10",
-    "relevant_sessions": [
-      {
-        "title": "אסדרה של מתקני התפלת מי ים ופיקוח עליהם, דוח שנתי 2024",
-        "committee": "הוועדה לענייני ביקורת המדינה",
-        "datetime": "17/09/2026 12:00",
-        "link": "https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2245390",
-        "category": "אנרגיה",
-        "relevance": "דיון באסדרה ופיקוח על מתקני התפלה, שהם צרכני אנרגיה משמעותיים ומשפיעים על משק החשמל ותשתיות האנרגיה."
-      }
-    ],
-    "total_scanned": 5,
-    "all_session_ids": [
-      2245379,
-      2245385,
-      2245384,
-      2245389,
-      2245390
-    ]
   }
 ]
