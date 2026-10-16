@@ -1,5 +1,17 @@
 [
   {
+    "date": "16/10/2026 11:16",
+    "date_iso": "2026-10-16",
+    "relevant_sessions": [],
+    "total_scanned": 4,
+    "all_session_ids": [
+      2245469,
+      2245470,
+      2245477,
+      2245450
+    ]
+  },
+  {
     "date": "15/10/2026 11:23",
     "date_iso": "2026-10-15",
     "relevant_sessions": [],
@@ -392,29 +404,6 @@
       2245396,
       2245405,
       2245407
-    ]
-  },
-  {
-    "date": "16/09/2026 11:40",
-    "date_iso": "2026-09-16",
-    "relevant_sessions": [
-      {
-        "title": "אסדרה של מתקני התפלת מי ים ופיקוח עליהם, דוח שנתי 2024",
-        "committee": "הוועדה לענייני ביקורת המדינה",
-        "datetime": "17/09/2026 12:00",
-        "link": "https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2245390",
-        "category": "אנרגיה",
-        "relevance": "מתקני התפלת מי ים הם צרכני אנרגיה גדולים וקשורים לתשתיות האנרגיה ולמחירי החשמל."
-      }
-    ],
-    "total_scanned": 6,
-    "all_session_ids": [
-      2245385,
-      2245384,
-      2245389,
-      2245390,
-      2245396,
-      2245405
     ]
   }
 ]
