@@ -1,5 +1,24 @@
 [
   {
+    "date": "23/10/2026 11:38",
+    "date_iso": "2026-10-23",
+    "relevant_sessions": [
+      {
+        "title": "הצעת צו היבוא והיצוא (איסור ייבוא רכיבים מסוימים לרחפנים)(הוראת שעה), התשפ\"ז-2026",
+        "committee": "ועדת הכלכלה",
+        "datetime": "26/10/2026 09:00",
+        "link": "https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2245491",
+        "category": "תחבורה",
+        "relevance": "הדיון עוסק בצו יבוא של רכיבים לרחפנים, הנחשבים כלי טיס ומהווים חלק מתחום הניידות והתחבורה (mobility) וחלקי חילוף לכלי רכב."
+      }
+    ],
+    "total_scanned": 2,
+    "all_session_ids": [
+      2245492,
+      2245491
+    ]
+  },
+  {
     "date": "22/10/2026 11:42",
     "date_iso": "2026-10-22",
     "relevant_sessions": [
@@ -393,19 +412,6 @@
       2245419,
       2245420,
       2245422
-    ]
-  },
-  {
-    "date": "23/09/2026 11:39",
-    "date_iso": "2026-09-23",
-    "relevant_sessions": [],
-    "total_scanned": 5,
-    "all_session_ids": [
-      2245396,
-      2245407,
-      2245405,
-      2245419,
-      2245420
     ]
   }
 ]
