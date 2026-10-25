@@ -1,5 +1,36 @@
 [
   {
+    "date": "25/10/2026 10:30",
+    "date_iso": "2026-10-25",
+    "relevant_sessions": [
+      {
+        "title": "שינויים בתקציב שנת 2026",
+        "committee": "ועדת הכספים",
+        "datetime": "יום ראשון, 25/10/2026 11:00",
+        "date_iso": "2026-10-25",
+        "datetime_utc": "20261025T090000Z",
+        "link": "https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2245492",
+        "category": "תחבורה",
+        "relevance": "Pending AI Analysis"
+      },
+      {
+        "title": "הצעת צו היבוא והיצוא (איסור ייבוא רכיבים מסוימים לרחפנים)(הוראת שעה), התשפ\"ז-2026",
+        "committee": "ועדת הכלכלה",
+        "datetime": "יום שני, 26/10/2026 09:00",
+        "date_iso": "2026-10-26",
+        "datetime_utc": "20261026T070000Z",
+        "link": "https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2245491",
+        "category": "תחבורה",
+        "relevance": "Pending AI Analysis"
+      }
+    ],
+    "total_scanned": 2,
+    "all_session_ids": [
+      2245492,
+      2245491
+    ]
+  },
+  {
     "date": "24/10/2026 11:12",
     "date_iso": "2026-10-24",
     "relevant_sessions": [
@@ -415,17 +446,6 @@
   {
     "date": "26/09/2026 11:40",
     "date_iso": "2026-09-26",
-    "relevant_sessions": [],
-    "total_scanned": 3,
-    "all_session_ids": [
-      2245419,
-      2245420,
-      2245422
-    ]
-  },
-  {
-    "date": "25/09/2026 11:54",
-    "date_iso": "2026-09-25",
     "relevant_sessions": [],
     "total_scanned": 3,
     "all_session_ids": [
