@@ -1,5 +1,25 @@
 [
   {
+    "date": "01/11/2026 12:35",
+    "date_iso": "2026-11-01",
+    "relevant_sessions": [
+      {
+        "title": "הצעת הארכת תוקף ההכרזה על מצב מיוחד בעורף (מיום 29 באוקטובר 2026)",
+        "committee": "ועדת החוץ והביטחון",
+        "datetime": "יום ראשון, 01/11/2026 10:30",
+        "date_iso": "2026-11-01",
+        "datetime_utc": "20261101T083000Z",
+        "link": "https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2245496",
+        "category": "תחבורה",
+        "relevance": "Pending AI Analysis"
+      }
+    ],
+    "total_scanned": 1,
+    "all_session_ids": [
+      2245496
+    ]
+  },
+  {
     "date": "31/10/2026 11:44",
     "date_iso": "2026-10-31",
     "relevant_sessions": [
@@ -450,17 +470,6 @@
   {
     "date": "03/10/2026 12:14",
     "date_iso": "2026-10-03",
-    "relevant_sessions": [],
-    "total_scanned": 3,
-    "all_session_ids": [
-      2245419,
-      2245420,
-      2245422
-    ]
-  },
-  {
-    "date": "02/10/2026 12:52",
-    "date_iso": "2026-10-02",
     "relevant_sessions": [],
     "total_scanned": 3,
     "all_session_ids": [
