@@ -1,5 +1,12 @@
 [
   {
+    "date": "02/11/2026 13:20",
+    "date_iso": "2026-11-02",
+    "relevant_sessions": [],
+    "total_scanned": 0,
+    "all_session_ids": []
+  },
+  {
     "date": "01/11/2026 12:35",
     "date_iso": "2026-11-01",
     "relevant_sessions": [
@@ -464,17 +471,6 @@
     "total_scanned": 2,
     "all_session_ids": [
       2245423,
-      2245422
-    ]
-  },
-  {
-    "date": "03/10/2026 12:14",
-    "date_iso": "2026-10-03",
-    "relevant_sessions": [],
-    "total_scanned": 3,
-    "all_session_ids": [
-      2245419,
-      2245420,
       2245422
     ]
   }
