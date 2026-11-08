@@ -1,5 +1,12 @@
 [
   {
+    "date": "08/11/2026 12:30",
+    "date_iso": "2026-11-08",
+    "relevant_sessions": [],
+    "total_scanned": 0,
+    "all_session_ids": []
+  },
+  {
     "date": "07/11/2026 12:22",
     "date_iso": "2026-11-07",
     "relevant_sessions": [],
@@ -426,25 +433,6 @@
   {
     "date": "10/10/2026 12:56",
     "date_iso": "2026-10-10",
-    "relevant_sessions": [],
-    "total_scanned": 11,
-    "all_session_ids": [
-      2245435,
-      2245434,
-      2245437,
-      2245438,
-      2245441,
-      2245439,
-      2245426,
-      2245429,
-      2245447,
-      2245450,
-      2245448
-    ]
-  },
-  {
-    "date": "09/10/2026 13:40",
-    "date_iso": "2026-10-09",
     "relevant_sessions": [],
     "total_scanned": 11,
     "all_session_ids": [
