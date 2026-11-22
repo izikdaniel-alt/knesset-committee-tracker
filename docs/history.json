@@ -1,5 +1,12 @@
 [
   {
+    "date": "22/11/2026 13:35",
+    "date_iso": "2026-11-22",
+    "relevant_sessions": [],
+    "total_scanned": 0,
+    "all_session_ids": []
+  },
+  {
     "date": "21/11/2026 13:16",
     "date_iso": "2026-11-21",
     "relevant_sessions": [],
@@ -320,25 +327,6 @@
         "link": "https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2245491",
         "category": "תחבורה",
         "relevance": "Pending AI Analysis"
-      }
-    ],
-    "total_scanned": 2,
-    "all_session_ids": [
-      2245492,
-      2245491
-    ]
-  },
-  {
-    "date": "23/10/2026 11:38",
-    "date_iso": "2026-10-23",
-    "relevant_sessions": [
-      {
-        "title": "הצעת צו היבוא והיצוא (איסור ייבוא רכיבים מסוימים לרחפנים)(הוראת שעה), התשפ\"ז-2026",
-        "committee": "ועדת הכלכלה",
-        "datetime": "26/10/2026 09:00",
-        "link": "https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2245491",
-        "category": "תחבורה",
-        "relevance": "הדיון עוסק בצו יבוא של רכיבים לרחפנים, הנחשבים כלי טיס ומהווים חלק מתחום הניידות והתחבורה (mobility) וחלקי חילוף לכלי רכב."
       }
     ],
     "total_scanned": 2,
