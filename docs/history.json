@@ -1,5 +1,12 @@
 [
   {
+    "date": "25/11/2026 15:05",
+    "date_iso": "2026-11-25",
+    "relevant_sessions": [],
+    "total_scanned": 0,
+    "all_session_ids": []
+  },
+  {
     "date": "24/11/2026 15:52",
     "date_iso": "2026-11-24",
     "relevant_sessions": [],
@@ -266,25 +273,5 @@
     "relevant_sessions": [],
     "total_scanned": 0,
     "all_session_ids": []
-  },
-  {
-    "date": "26/10/2026 11:03",
-    "date_iso": "2026-10-26",
-    "relevant_sessions": [
-      {
-        "title": "הצעת צו היבוא והיצוא (איסור ייבוא רכיבים מסוימים לרחפנים)(הוראת שעה), התשפ\"ז-2026",
-        "committee": "ועדת הכלכלה",
-        "datetime": "יום שני, 26/10/2026 09:00",
-        "date_iso": "2026-10-26",
-        "datetime_utc": "20261026T070000Z",
-        "link": "https://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=2245491",
-        "category": "תחבורה",
-        "relevance": "Pending AI Analysis"
-      }
-    ],
-    "total_scanned": 1,
-    "all_session_ids": [
-      2245491
-    ]
   }
 ]
