@@ -53,8 +53,7 @@ MAX_HISTORY_RUNS = 30
 
 KNESSET_API = (
     "https://knesset.gov.il/Odata/ParliamentInfo.svc/KNS_CommitteeSession"
-    "?$filter=KnessetNum eq 25"
-    " and StartDate ge datetime'{start}'"
+    "?$filter=StartDate ge datetime'{start}'"
     " and StartDate le datetime'{end}'"
     "&$expand=KNS_Committee,KNS_CmtSessionItems"
     "&$orderby=StartDate asc"
