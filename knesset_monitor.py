@@ -42,7 +42,7 @@ RECIPIENT_EMAIL = os.getenv("RECIPIENT_EMAIL")
 GITHUB_PAGES_URL = os.getenv("GITHUB_PAGES_URL", "")
 SCRAPER_API_KEY = os.getenv("SCRAPER_API_KEY")
 
-GEMINI_MODEL = "models/gemini-2.5-flash"
+GEMINI_MODEL = "models/gemini-3.8-flash"
 BATCH_SIZE = 150          # max sessions per Gemini call to stay within token limits
 MAX_GEMINI_RETRIES = 3
 
