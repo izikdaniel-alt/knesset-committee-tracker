@@ -42,9 +42,13 @@ RECIPIENT_EMAIL = os.getenv("RECIPIENT_EMAIL")
 GITHUB_PAGES_URL = os.getenv("GITHUB_PAGES_URL", "")
 SCRAPER_API_KEY = os.getenv("SCRAPER_API_KEY")
 
-GEMINI_MODEL = "models/gemini-3.8-flash"
+GEMINI_MODELS = [        # tried in order; later models are fallbacks when earlier ones are overloaded
+    "models/gemini-3.8-flash",
+    "models/gemini-3.5-flash-lite",
+]
 BATCH_SIZE = 150          # max sessions per Gemini call to stay within token limits
-MAX_GEMINI_RETRIES = 3
+MAX_GEMINI_RETRIES = 3    # attempts per model
+GEMINI_RETRY_BASE_SECS = 15  # backoff between attempts: 15s, 30s
 
 HEBREW_DAYS = ["יום שני", "יום שלישי", "יום רביעי", "יום חמישי", "יום שישי", "יום שבת", "יום ראשון"]
 ISRAEL_TZ = ZoneInfo("Asia/Jerusalem")
@@ -272,18 +276,22 @@ def _analyse_chunk(client: genai.Client, sessions: list[dict]) -> dict:
 
     log.info("Sending %d sessions to Gemini for analysis…", len(sessions))
 
-    raw_text = ""
-    for attempt in range(MAX_GEMINI_RETRIES):
-        try:
-            response = client.models.generate_content(model=GEMINI_MODEL, contents=prompt)
-            raw_text = response.text.strip()
+    raw_text = None
+    for model in GEMINI_MODELS:
+        for attempt in range(MAX_GEMINI_RETRIES):
+            try:
+                response = client.models.generate_content(model=model, contents=prompt)
+                raw_text = response.text.strip()
+                log.info("Gemini analysis succeeded with %s.", model)
+                break
+            except Exception as exc:
+                log.warning("Gemini %s attempt %d/%d failed: %s", model, attempt + 1, MAX_GEMINI_RETRIES, exc)
+                if attempt < MAX_GEMINI_RETRIES - 1:
+                    time.sleep(GEMINI_RETRY_BASE_SECS * 2 ** attempt)
+        if raw_text is not None:
             break
-        except Exception as exc:
-            log.warning("Gemini attempt %d/%d failed: %s", attempt + 1, MAX_GEMINI_RETRIES, exc)
-            if attempt < MAX_GEMINI_RETRIES - 1:
-                time.sleep(2 ** attempt)
     else:
-        log.error("Gemini API failed after %d attempts. Falling back to showing all sessions.", MAX_GEMINI_RETRIES)
+        log.error("Gemini API failed on all models (%s). Falling back to showing all sessions.", ", ".join(GEMINI_MODELS))
         return {
             "relevant_sessions": [
                 {k: v for k, v in s.items() if k != "session_id"} | {"category": "תחבורה", "relevance": "Pending AI Analysis"}
